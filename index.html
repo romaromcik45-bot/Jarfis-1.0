@@ -1,756 +1,648 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>J.A.R.V.I.S. · ИИ-ассистент</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Standoff Mobile Web</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', system-ui, sans-serif;
+        /* Сброс и базовые настройки для мобилок */
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+        body { 
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; 
+            background: #0b0c10; /* Темный фон игры */
+            color: white; 
+            overflow: hidden; height: 100vh; width: 100vw; position: relative;
         }
 
-        body {
-            min-height: 100vh;
-            background: linear-gradient(145deg, #0b0e1a 0%, #141a2b 100%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            transition: 0.3s;
+        /* Верхняя панель */
+        .top-bar {
+            position: absolute; top: 0; left: 0; width: 100%; height: 50px;
+            background: rgba(20, 22, 28, 0.95);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 15px; z-index: 10; border-bottom: 1px solid #2a2d35;
+        }
+        .top-bar .gold { color: #ffd700; font-size: 16px; font-weight: bold; }
+        .top-bar .stats { display: flex; gap: 15px; font-size: 12px; color: #aaa; }
+
+        /* Игровое поле (Canvas) */
+        #gameCanvas {
+            position: absolute; top: 50px; bottom: 100px; left: 0; right: 0;
+            width: 100%; height: calc(100% - 150px); /* Учитываем топ и нижнюю панель */
+            background: #d2b48c; /* Цвет песка (карта) */
+            display: block; touch-action: none;
         }
 
-        .jarvis-card {
-            max-width: 720px;
-            width: 100%;
-            background: rgba(20, 28, 50, 0.7);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-radius: 48px;
-            padding: 32px 28px 40px;
-            box-shadow: 0 25px 50px -8px rgba(0, 0, 0, 0.8), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.03);
+        /* Нижняя панель управления (Мобильная) */
+        .bottom-panel {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 100px;
+            background: rgba(20, 22, 28, 0.95);
+            border-top: 1px solid #2a2d35; z-index: 10;
+            display: flex; justify-content: space-between; align-items: center; padding: 10px 15px;
+        }
+        
+        /* Джойстик (Область для свайпов) */
+        .joystick-area {
+            width: 80px; height: 80px; border-radius: 50%; background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.2); position: relative;
+            display: flex; align-items: center; justify-content: center; touch-action: none;
+        }
+        .joystick-knob {
+            width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.4);
+            position: absolute; left: 20px; top: 20px; transition: 0.05s linear; touch-action: none;
         }
 
-        .header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
+        /* Кнопка стрельбы */
+        .fire-btn {
+            width: 70px; height: 70px; border-radius: 50%; background: #e74c3c;
+            border: 4px solid #ff6b6b; box-shadow: 0 0 15px rgba(231, 76, 60, 0.5);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: bold; cursor: pointer; touch-action: none;
+            transition: transform 0.1s;
         }
+        .fire-btn:active { transform: scale(0.85); background: #c0392b; }
 
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
+        /* Меню и кнопки действий */
+        .action-buttons { display: flex; flex-direction: column; gap: 5px; }
+        .action-btn {
+            padding: 5px 12px; background: #2c3e50; border: 1px solid #34495e;
+            color: white; border-radius: 20px; font-size: 10px; font-weight: bold;
+            cursor: pointer; text-align: center;
         }
+        .action-btn.cheat { background: #c0392b; border-color: #e74c3c; }
 
-        .logo i {
-            font-size: 2.2rem;
-            color: #4fc3f7;
-            filter: drop-shadow(0 0 8px rgba(79, 195, 247, 0.4));
+        /* Модальные окна (Инвентарь, Кейсы) */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(4px);
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 999; padding: 20px;
         }
+        .modal-panel {
+            background: #1a1c22; width: 100%; max-width: 400px; max-height: 80vh;
+            border-radius: 16px; padding: 20px; border: 1px solid #2a2d35;
+            display: flex; flex-direction: column; overflow: hidden;
+        }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid #252830; padding-bottom: 15px; margin-bottom: 15px;
+        }
+        .close-btn { background: #333; padding: 5px 15px; border-radius: 20px; cursor: pointer; }
+        
+        /* Сетка инвентаря и Кейсы */
+        .grid-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; overflow-y: auto; }
+        .item-card { background: #252830; padding: 10px; border-radius: 10px; text-align: center; border-bottom: 3px solid #7f8c8d; }
+        .item-card.Common { border-color: #bdc3c7; }
+        .item-card.Rare { border-color: #3498db; }
+        .item-card.Epic { border-color: #9b59b6; }
+        .item-card.Legendary { border-color: #f1c40f; }
+        
+        /* Прокрутка кейсов (Анимация) */
+        .case-open-area { width: 100%; height: 100px; background: #0f1014; border-radius: 10px; display: flex; overflow: hidden; margin-bottom: 20px; position: relative; }
+        .slot-machine { display: flex; width: 100%; position: relative; left: 0; transition: left 2s cubic-bezier(0.25, 1, 0.5, 1); }
+        .slot-item { min-width: 60px; height: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-right: 1px solid #222; background: #1a1c22; font-size: 10px; text-align: center; padding: 5px; }
+        .slot-item.active { background: #f7931e; color: black; font-weight: bold; border: 2px solid white; }
+        .highlight-bar { position: absolute; top: 0; left: 50%; height: 100%; width: 60px; background: rgba(247, 147, 30, 0.2); border: 2px solid #f7931e; transform: translateX(-50%); pointer-events: none; box-shadow: 0 0 15px #f7931e; }
+        
+        .btn-open-case { width: 100%; padding: 15px; background: #f7931e; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.5); cursor: pointer; margin-top: 10px; }
+        .btn-open-case:disabled { background: #666; cursor: not-allowed; }
+        
+        .cases-select { display: flex; gap: 10px; justify-content: space-around; margin-bottom: 20px; }
+        .case-type { background: #252830; padding: 10px; border-radius: 8px; text-align: center; width: 45%; border: 2px solid transparent; }
+        .case-type.selected { border-color: #f7931e; }
 
-        .logo h1 {
-            font-weight: 500;
-            font-size: 1.6rem;
-            letter-spacing: 1px;
-            background: linear-gradient(135deg, #e0f2fe, #b2ebf2);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
+        /* Меню читов */
+        .cheat-overlay {
+            position: absolute; top: 50px; right: 10px; background: rgba(0,0,0,0.85);
+            padding: 15px; border-radius: 10px; border: 1px solid #c0392b; z-index: 20; display: none;
+            width: 160px;
         }
-
-        .status-badge {
-            background: rgba(79, 195, 247, 0.12);
-            padding: 8px 16px;
-            border-radius: 60px;
-            font-size: 0.75rem;
-            font-weight: 500;
-            color: #81d4fa;
-            border: 1px solid rgba(79, 195, 247, 0.2);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            white-space: nowrap;
-        }
-
-        .status-badge i {
-            font-size: 0.7rem;
-            color: #4fc3f7;
-        }
-
-        .status-badge .pulse {
-            animation: pulse-dot 1.5s infinite;
-        }
-
-        @keyframes pulse-dot {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.2; }
-        }
-
-        .avatar-section {
-            display: flex;
-            justify-content: center;
-            margin: 16px 0 18px;
-        }
-
-        .avatar {
-            width: 100px;
-            height: 100px;
-            background: radial-gradient(circle at 30% 30%, #1f334f, #0e1629);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.8), 0 0 0 2px rgba(79, 195, 247, 0.15);
-            transition: 0.3s;
-            cursor: pointer;
-        }
-
-        .avatar i {
-            font-size: 4rem;
-            color: #b0d9f5;
-            filter: drop-shadow(0 0 12px #4fc3f766);
-        }
-
-        .avatar.active {
-            box-shadow: 0 0 0 4px #4fc3f7, 0 10px 30px -5px #4fc3f755;
-            animation: avatar-pulse 1s infinite;
-        }
-
-        @keyframes avatar-pulse {
-            0%, 100% { box-shadow: 0 0 0 4px #4fc3f7, 0 10px 30px -5px #4fc3f755; }
-            50% { box-shadow: 0 0 0 8px #4fc3f744, 0 10px 30px -5px #4fc3f755; }
-        }
-
-        .avatar.speaking {
-            animation: speaking 0.3s infinite alternate;
-        }
-
-        @keyframes speaking {
-            0% { transform: scale(1); }
-            100% { transform: scale(1.05); }
-        }
-
-        .conversation {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 28px;
-            padding: 20px 18px;
-            margin: 12px 0 24px;
-            min-height: 140px;
-            max-height: 260px;
-            overflow-y: auto;
-            border: 1px solid rgba(255, 255, 255, 0.03);
-            box-shadow: inset 0 6px 12px rgba(0, 0, 0, 0.3);
-            scroll-behavior: smooth;
-        }
-
-        .conversation::-webkit-scrollbar {
-            width: 4px;
-        }
-        .conversation::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .conversation::-webkit-scrollbar-thumb {
-            background: #4fc3f766;
-            border-radius: 12px;
-        }
-
-        .message {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            margin-bottom: 14px;
-            animation: fadeSlide 0.3s ease;
-        }
-
-        .message .icon {
-            width: 30px;
-            height: 30px;
-            background: #1f2b40;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            font-size: 0.9rem;
-            color: #b0d9f5;
-        }
-
-        .message.user .icon {
-            background: #2a3a5a;
-            color: #f0f9ff;
-        }
-
-        .message .bubble {
-            background: rgba(255, 255, 255, 0.04);
-            padding: 10px 16px;
-            border-radius: 18px 18px 18px 4px;
-            font-size: 0.95rem;
-            line-height: 1.5;
-            color: #e3edf7;
-            word-break: break-word;
-            border: 1px solid rgba(255, 255, 255, 0.02);
-            backdrop-filter: blur(4px);
-            max-width: 90%;
-        }
-
-        .message.user .bubble {
-            background: #1f334f;
-            border-radius: 18px 18px 4px 18px;
-            border-color: #2e4a6b;
-        }
-
-        .message .bubble .timestamp {
-            font-size: 0.6rem;
-            opacity: 0.5;
-            margin-left: 12px;
-        }
-
-        .controls {
-            display: flex;
-            gap: 14px;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin-top: 6px;
-        }
-
-        .btn {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            padding: 14px 20px;
-            border-radius: 60px;
-            color: #d4e6f5;
-            font-size: 1rem;
-            font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-            gap: 12px;
-            cursor: pointer;
-            transition: 0.2s;
-            backdrop-filter: blur(6px);
-            flex: 1 1 auto;
-            justify-content: center;
-            min-width: 120px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        .btn i {
-            font-size: 1.2rem;
-        }
-
-        .btn:hover {
-            background: rgba(79, 195, 247, 0.08);
-            border-color: #4fc3f766;
-            transform: scale(1.02);
-        }
-        .btn:active {
-            transform: scale(0.96);
-        }
-
-        .btn-success {
-            background: #1a4a3a;
-            border-color: #4fc3f744;
-            color: #e6f3ff;
-        }
-        .btn-success i {
-            color: #81d4fa;
-        }
-
-        .btn-danger {
-            background: #5a1a2a;
-            border-color: #ff6b6b44;
-            color: #ffd4d4;
-        }
-        .btn-danger i {
-            color: #ff6b6b;
-        }
-
-        .btn-outline {
-            background: transparent;
-            border-color: #2a4060;
-        }
-        .btn-outline:hover {
-            background: #1a2a44;
-        }
-
-        .footer-info {
-            margin-top: 28px;
-            display: flex;
-            justify-content: center;
-            font-size: 0.7rem;
-            color: #5b7290;
-            letter-spacing: 0.3px;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-
-        .footer-info span i {
-            margin-right: 6px;
-            color: #4fc3f788;
-        }
-
-        @keyframes fadeSlide {
-            0% { opacity: 0; transform: translateY(8px); }
-            100% { opacity: 1; transform: translateY(0); }
-        }
-
-        @media (max-width: 500px) {
-            .jarvis-card { padding: 24px 16px; }
-            .logo h1 { font-size: 1.2rem; }
-            .btn { padding: 12px 14px; min-width: 100px; font-size: 0.9rem; }
-        }
-
-        .listening-waves {
-            display: none;
-            justify-content: center;
-            gap: 4px;
-            margin-top: 8px;
-        }
-
-        .listening-waves span {
-            width: 4px;
-            height: 20px;
-            background: #4fc3f7;
-            border-radius: 4px;
-            animation: wave 0.8s infinite ease-in-out;
-        }
-
-        .listening-waves span:nth-child(2) { animation-delay: 0.1s; height: 30px; }
-        .listening-waves span:nth-child(3) { animation-delay: 0.2s; height: 40px; }
-        .listening-waves span:nth-child(4) { animation-delay: 0.3s; height: 30px; }
-        .listening-waves span:nth-child(5) { animation-delay: 0.4s; height: 20px; }
-
-        @keyframes wave {
-            0%, 100% { transform: scaleY(0.5); }
-            50% { transform: scaleY(1); }
-        }
-
-        .listening-waves.active {
-            display: flex;
-        }
+        .cheat-item { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 12px; align-items: center; }
+        .switch { position: relative; display: inline-block; width: 30px; height: 17px; }
+        .slider { position: absolute; cursor: pointer; background: #555; transition: .4s; border-radius: 17px; width: 100%; height: 100%; }
+        .slider:before { content: ""; height: 13px; width: 13px; left: 2px; bottom: 2px; background: white; position: absolute; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background: #e74c3c; }
+        input:checked + .slider:before { transform: translateX(13px); }
     </style>
 </head>
 <body>
 
-    <!-- ОСНОВНОЙ ИНТЕРФЕЙС (БЕЗ ПАРОЛЯ) -->
-    <div class="jarvis-card" id="mainApp">
-        <div class="header">
-            <div class="logo">
-                <i class="fas fa-robot"></i>
-                <h1>JARVIS</h1>
-            </div>
-            <div class="status-badge" id="statusBadge">
-                <i class="fas fa-circle pulse" style="color: #4fc3f7;"></i>
-                <span id="statusText">активен</span>
-            </div>
+    <!-- Верхняя панель -->
+    <div class="top-bar">
+        <div class="gold">🪙 <span id="goldBalance">150</span></div>
+        <div class="stats">
+            <span>K: <b id="killCount">0</b></span>
+            <span>C: <b id="champCount">0</b></span>
         </div>
-
-        <div class="avatar-section">
-            <div class="avatar" id="avatarIcon">
-                <i class="fas fa-microchip"></i>
-            </div>
-        </div>
-
-        <div class="listening-waves" id="listeningWaves">
-            <span></span><span></span><span></span><span></span><span></span>
-        </div>
-
-        <div class="conversation" id="conversationBox">
-            <div class="message jarvis">
-                <div class="icon"><i class="fas fa-robot"></i></div>
-                <div class="bubble">
-                    🚀 Привет! Я JARVIS 3.0. Я всегда слушаю и готов помочь. Просто говори со мной!
-                    <span class="timestamp">сейчас</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="controls">
-            <button class="btn btn-success" id="micToggle">
-                <i class="fas fa-microphone"></i> <span id="micLabel">🎤 Всегда слушаю</span>
-            </button>
-            <button class="btn btn-outline" id="searchButton">
-                <i class="fas fa-globe"></i> Поиск
-            </button>
-            <button class="btn btn-outline" id="clearButton">
-                <i class="fas fa-eraser"></i> Очистить
-            </button>
-        </div>
-
-        <div class="footer-info">
-            <span><i class="fas fa-wifi"></i> всегда онлайн</span>
-            <span><i class="fas fa-brain"></i> самообучение</span>
-            <span><i class="fas fa-microphone-alt"></i> голосовой ввод</span>
-            <span><i class="fas fa-volume-up"></i> голосовой вывод</span>
+        <div style="display: flex; gap: 8px;">
+            <div class="action-btn" onclick="openModal('inventoryModal')">🎒</div>
+            <div class="action-btn" onclick="openModal('caseModal')">📦</div>
         </div>
     </div>
 
-    <script>
-        (function() {
-            "use strict";
+    <!-- Меню Читов (Плавает над картой) -->
+    <div class="cheat-overlay" id="cheatPanel">
+        <div class="cheat-item">AimBot <label class="switch"><input type="checkbox" id="chAim"><span class="slider"></span></label></div>
+        <div class="cheat-item">ESP <label class="switch"><input type="checkbox" id="chESP"><span class="slider"></span></label></div>
+        <div class="cheat-item" style="flex-direction: column; gap:5px; align-items: stretch;">
+            <button onclick="giveGold()" style="background:#3498db; border:none; color:white; padding:5px; border-radius:5px;">+500 Gold</button>
+            <button onclick="spawnChamp()" style="background:#9b59b6; border:none; color:white; padding:5px; border-radius:5px;">Спавн Чемпиона</button>
+        </div>
+    </div>
 
-            // ---------- ОСНОВНАЯ ЛОГИКА ----------
-            let isListening = false;
-            let recognition = null;
-            let silenceTimer = null;
-            let memory = [];
-            let isSpeaking = false;
-            let speechSynthesis = window.speechSynthesis;
-            let isContinuousListening = true;
-            let processing = false;
+    <!-- Холст для игры (Карта) -->
+    <canvas id="gameCanvas"></canvas>
 
-            const conversationBox = document.getElementById('conversationBox');
-            const micToggle = document.getElementById('micToggle');
-            const micLabel = document.getElementById('micLabel');
-            const searchButton = document.getElementById('searchButton');
-            const clearButton = document.getElementById('clearButton');
-            const statusText = document.getElementById('statusText');
-            const avatarIcon = document.getElementById('avatarIcon');
-            const listeningWaves = document.getElementById('listeningWaves');
+    <!-- Нижняя панель управления -->
+    <div class="bottom-panel">
+        <div class="joystick-area" id="joystickArea">
+            <div class="joystick-knob" id="joystickKnob"></div>
+        </div>
+        
+        <div style="display:flex; gap:10px; align-items:center;">
+            <div class="action-btn cheat" onclick="toggleCheatPanel()">⚡</div>
+            <div class="fire-btn" id="fireBtn">🔫</div>
+        </div>
+    </div>
 
-            function addMessage(sender, text, isUser = false) {
-                const messageDiv = document.createElement('div');
-                messageDiv.className = `message ${isUser ? 'user' : 'jarvis'}`;
 
-                const icon = document.createElement('div');
-                icon.className = 'icon';
-                icon.innerHTML = isUser ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
+    <!-- ================== МОДАЛЬНЫЕ ОКНА ================== -->
 
-                const bubble = document.createElement('div');
-                bubble.className = 'bubble';
-                const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                bubble.innerHTML = `${text} <span class="timestamp">${time}</span>`;
+    <!-- Инвентарь -->
+    <div class="modal-overlay" id="inventoryModal">
+        <div class="modal-panel">
+            <div class="modal-header">
+                <span style="font-size: 18px; font-weight: bold;">Инвентарь</span>
+                <div class="close-btn" onclick="closeModal('inventoryModal')">Закрыть</div>
+            </div>
+            <div class="grid-container" id="invGrid">
+                <!-- Сюда JS вставит скины -->
+            </div>
+        </div>
+    </div>
 
-                messageDiv.appendChild(icon);
-                messageDiv.appendChild(bubble);
-                conversationBox.appendChild(messageDiv);
-                conversationBox.scrollTop = conversationBox.scrollHeight;
-            }
+    <!-- Кейсы -->
+    <div class="modal-overlay" id="caseModal">
+        <div class="modal-panel">
+            <div class="modal-header">
+                <span style="font-size: 18px; font-weight: bold;">Открытие кейсов</span>
+                <div class="close-btn" onclick="closeModal('caseModal')">Закрыть</div>
+            </div>
+            
+            <div class="cases-select">
+                <div class="case-type selected" id="caseEmpire" onclick="selectCase('Empire')">Empire<br><span style="font-size:10px; color:#aaa;">50🪙</span></div>
+                <div class="case-type" id="caseClassic" onclick="selectCase('Classic')">Classic<br><span style="font-size:10px; color:#aaa;">30🪙</span></div>
+            </div>
 
-            // ---------- ГОЛОСОВОЙ ВЫВОД ----------
-            function speak(text) {
-                if (isSpeaking) {
-                    speechSynthesis.cancel();
+            <div class="case-open-area">
+                <div class="highlight-bar"></div>
+                <div class="slot-machine" id="slotMachine">
+                    <!-- Сюда JS вставит предметы для прокрутки -->
+                </div>
+            </div>
+
+            <button class="btn-open-case" id="openCaseBtn" onclick="startCaseOpening()">Открыть кейс</button>
+        </div>
+    </div>
+
+<script>
+// =========================================================
+// JAVASCRIPT - ВСЯ ЛОГИКА ИГРЫ, КЕЙСОВ И ЧИТОВ
+// =========================================================
+
+// --- БАЗА ДАННЫХ СКИНОВ ---
+const skinDatabase = {
+    'Empire': [
+        { name: 'AKR "Sport"', rarity: 'Epic', color: '#9b59b6' },
+        { name: 'AWM "Cold-blooded"', rarity: 'Legendary', color: '#f1c40f' },
+        { name: 'Desert Eagle "Hunter"', rarity: 'Rare', color: '#3498db' },
+        { name: 'M60 "Quantum"', rarity: 'Epic', color: '#9b59b6' },
+        { name: 'Gloves "Punk"', rarity: 'Legendary', color: '#f1c40f' },
+        { name: 'Charm "Project Z"', rarity: 'Common', color: '#bdc3c7' },
+        { name: 'M16 "Sharpshooter"', rarity: 'Rare', color: '#3498db' }
+    ],
+    'Classic': [
+        { name: 'AKR "Blue Gem"', rarity: 'Rare', color: '#3498db' },
+        { name: 'Desert Eagle "Inferno"', rarity: 'Epic', color: '#9b59b6' },
+        { name: 'Charm "Gold"', rarity: 'Legendary', color: '#f1c40f' },
+        { name: 'AWM "Icetech"', rarity: 'Common', color: '#bdc3c7' },
+        { name: 'Gloves "Champion"', rarity: 'Legendary', color: '#f1c40f' },
+        { name: 'M4 "Titan"', rarity: 'Epic', color: '#9b59b6' },
+        { name: 'FAMAS "Survivor"', rarity: 'Rare', color: '#3498db' }
+    ]
+};
+
+// Переменные состояния
+let playerGold = 150;
+let inventory = [];
+let currentCaseType = 'Empire';
+let isSpinning = false;
+let gameRunning = true;
+let player = { x: 200, y: 200, radius: 15, health: 100, score: 0, champScore: 0 };
+let enemies = [];
+let bullets = [];
+let lastShotTime = 0;
+let joystickData = { dx: 0, dy: 0 };
+
+// Настройки читов
+let cheats = { aimbot: false, esp: false };
+
+// Получаем элементы Canvas
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const ctxRect = canvas.getBoundingClientRect();
+
+// --- 1. ЛОГИКА КЕЙСОВ И ИНВЕНТАРЯ ---
+
+function updateUI() {
+    document.getElementById('goldBalance').innerText = playerGold;
+    document.getElementById('killCount').innerText = player.score;
+    document.getElementById('champCount').innerText = player.champScore;
+}
+
+function addToInventory(skin) {
+    inventory.push(skin);
+    renderInventory();
+}
+
+function renderInventory() {
+    const grid = document.getElementById('invGrid');
+    grid.innerHTML = '';
+    if(inventory.length === 0) {
+        grid.innerHTML = '<div style="grid-column: span 3; text-align:center; color:#555;">Инвентарь пуст. Открой кейс!</div>';
+        return;
+    }
+    inventory.forEach(item => {
+        const card = document.createElement('div');
+        card.className = `item-card ${item.rarity}`;
+        card.style.borderColor = item.color;
+        card.innerHTML = `
+            <div style="font-size: 20px; margin-bottom: 5px;">🎯</div>
+            <div style="font-weight:bold; font-size:12px;">${item.name}</div>
+            <div style="font-size:10px; color:${item.color};">${item.rarity}</div>
+        `;
+        grid.appendChild(card);
+    });
+}
+
+function selectCase(type) {
+    currentCaseType = type;
+    document.querySelectorAll('.case-type').forEach(el => el.classList.remove('selected'));
+    document.getElementById(type === 'Empire' ? 'caseEmpire' : 'caseClassic').classList.add('selected');
+}
+
+function getCasePrice() {
+    return currentCaseType === 'Empire' ? 50 : 30;
+}
+
+function startCaseOpening() {
+    if (isSpinning) return;
+    const price = getCasePrice();
+    if (playerGold < price) { alert("Недостаточно золота! Играй в режиме Арены или возьми Gold в читах."); return; }
+    
+    playerGold -= price;
+    updateUI();
+    isSpinning = true;
+    document.getElementById('openCaseBtn').disabled = true;
+
+    // Подготовка списка для прокрутки
+    const pool = skinDatabase[currentCaseType];
+    // Создаем массив из 30+ элементов для красивой прокрутки
+    let rollItems = [];
+    const winIndex = Math.floor(Math.random() * pool.length);
+    
+    // Заполняем случайными
+    for(let i=0; i<25; i++) {
+        rollItems.push(pool[Math.floor(Math.random() * pool.length)]);
+    }
+    // Добавляем выигрышный в конец
+    rollItems.push(pool[winIndex]);
+
+    // Рендер в слот-машину
+    const slotMachine = document.getElementById('slotMachine');
+    slotMachine.innerHTML = '';
+    rollItems.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = 'slot-item';
+        div.innerText = item.name;
+        if(index === rollItems.length - 1) div.classList.add('active');
+        slotMachine.appendChild(div);
+    });
+
+    // Анимация прокрутки (сдвиг влево)
+    // Ширина 1 элемента ~ 60px. Сдвигаем на (кол-во элементов - 1) * 60
+    const totalWidth = (rollItems.length - 1) * 60; 
+    slotMachine.style.left = `0px`;
+    
+    // Запускаем анимацию через requestAnimationFrame или CSS transition
+    setTimeout(() => {
+        slotMachine.style.left = `-${totalWidth}px`; // 60px - ширина слота. Итого сдвиг на 29*60 = 1740px
+    }, 50);
+
+    // Ждем окончания анимации (2.2 секунды)
+    setTimeout(() => {
+        const winSkin = rollItems[rollItems.length - 1];
+        addToInventory(winSkin);
+        isSpinning = false;
+        document.getElementById('openCaseBtn').disabled = false;
+        alert(`Поздравляю! Ты получил: ${winSkin.name} (${winSkin.rarity})`);
+    }, 2300);
+}
+
+// --- 2. ЛОГИКА МИНИ-ИГРЫ (ДВИЖЕНИЕ, БОТЫ, СТРЕЛЬБА) ---
+
+function resizeCanvas() {
+    const top = document.querySelector('.top-bar').offsetHeight;
+    const bottom = document.querySelector('.bottom-panel').offsetHeight;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight - top - bottom;
+    canvas.style.top = top + 'px';
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+// Генерация врагов
+function spawnEnemy() {
+    if(enemies.length < 10) {
+        // Спавн за пределами экрана, но чтобы не на игроке
+        let x, y;
+        do {
+            x = Math.random() * canvas.width;
+            y = Math.random() * canvas.height;
+        } while (Math.hypot(x - player.x, y - player.y) < 100);
+        
+        enemies.push({
+            x: x, y: y, radius: 12, 
+            hp: 50, maxHp: 50,
+            speed: 1 + Math.random() * 1.5,
+            isChamp: Math.random() < 0.1 // 10% шанс чемпиона
+        });
+    }
+}
+
+function spawnChamp() {
+    // Чит кнопка спавна чемпиона
+    let x = Math.random() * canvas.width;
+    let y = Math.random() * canvas.height;
+    enemies.push({
+        x: x, y: y, radius: 18, 
+        hp: 150, maxHp: 150,
+        speed: 2.5,
+        isChamp: true
+    });
+}
+
+// Пули
+function shootBullet() {
+    const now = Date.now();
+    if(now - lastShotTime > 200) {
+        lastShotTime = now;
+        
+        let targetX = player.x + 20; // По умолчанию вправо
+        let targetY = player.y;
+
+        // AIMBOT ЧИТ (Наведение)
+        if(cheats.aimbot && enemies.length > 0) {
+            let nearest = enemies[0];
+            let minDist = Infinity;
+            enemies.forEach(enemy => {
+                let d = Math.hypot(enemy.x - player.x, enemy.y - player.y);
+                if(d < minDist) {
+                    minDist = d;
+                    nearest = enemy;
                 }
-                isSpeaking = true;
-                avatarIcon.classList.add('speaking');
+            });
+            // Вектор на врага
+            targetX = nearest.x;
+            targetY = nearest.y;
+        }
 
-                const cleanText = text.replace(/[🔍📌💡🔗📚🤔❌✅⚠️🚀🔐🎤]/g, '').trim();
+        bullets.push({
+            x: player.x, y: player.y,
+            targetX: targetX, targetY: targetY,
+            speed: 8,
+            damage: 30
+        });
+    }
+}
 
-                const utterance = new SpeechSynthesisUtterance(cleanText);
-                utterance.lang = 'ru-RU';
-                utterance.rate = 0.9;
-                utterance.pitch = 1;
-                utterance.volume = 1;
+// Обновление игры (движение ботов, коллизии)
+function updateGame() {
+    if(!gameRunning) return;
 
-                const voices = speechSynthesis.getVoices();
-                const russianVoice = voices.find(v => v.lang.startsWith('ru'));
-                if (russianVoice) utterance.voice = russianVoice;
+    // Движение игрока от джойстика
+    player.x += joystickData.dx * 5;
+    player.y += joystickData.dy * 5;
+    // Ограничения (не вылетай за карту)
+    player.x = Math.max(player.radius, Math.min(canvas.width - player.radius, player.x));
+    player.y = Math.max(player.radius, Math.min(canvas.height - player.radius, player.y));
 
-                utterance.onend = function() {
-                    isSpeaking = false;
-                    avatarIcon.classList.remove('speaking');
-                };
+    // Движение врагов к игроку
+    enemies.forEach(enemy => {
+        let dx = player.x - enemy.x;
+        let dy = player.y - enemy.y;
+        let len = Math.hypot(dx, dy);
+        if(len > 2) {
+            enemy.x += (dx / len) * enemy.speed;
+            enemy.y += (dy / len) * enemy.speed;
+        }
+    });
 
-                utterance.onerror = function() {
-                    isSpeaking = false;
-                    avatarIcon.classList.remove('speaking');
-                };
+    // Обновление пуль
+    for(let i = bullets.length - 1; i >= 0; i--) {
+        let b = bullets[i];
+        let dx = b.targetX - b.x;
+        let dy = b.targetY - b.y;
+        let len = Math.hypot(dx, dy);
+        if(len < 5) {
+            bullets.splice(i, 1);
+            continue;
+        }
+        b.x += (dx / len) * b.speed;
+        b.y += (dy / len) * b.speed;
 
-                speechSynthesis.speak(utterance);
-            }
-
-            // ---------- РЕАЛЬНЫЙ ПОИСК ----------
-            async function realSearch(query) {
-                try {
-                    const url = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1&skip_disambig=1`;
-                    const response = await fetch(url);
-                    const data = await response.json();
-
-                    if (data.AbstractText && data.AbstractText.length > 0) {
-                        return {
-                            found: true,
-                            answer: data.AbstractText,
-                            source: data.AbstractURL || 'https://duckduckgo.com',
-                            title: data.Heading || 'Результат поиска'
-                        };
-                    } else if (data.RelatedTopics && data.RelatedTopics.length > 0) {
-                        const first = data.RelatedTopics.find(t => t.Text);
-                        if (first && first.Text) {
-                            return {
-                                found: true,
-                                answer: first.Text,
-                                source: first.FirstURL || 'https://duckduckgo.com',
-                                title: 'Похожий результат'
-                            };
-                        }
-                    }
-                    return { found: false };
-                } catch (error) {
-                    return { found: false, error: error.message };
-                }
-            }
-
-            // ---------- УМНЫЙ АНАЛИЗ ЗАПРОСА ----------
-            async function processQuery(text) {
-                if (processing) return 'Обрабатываю предыдущий запрос...';
-                processing = true;
-
-                const lower = text.toLowerCase().trim();
-                memory.push(text);
-
-                // --- БЫСТРЫЕ КОМАНДЫ ---
-                if (lower.includes('привет') || lower.includes('здравствуй') || lower.includes('здарова')) {
-                    processing = false;
-                    return 'Здравствуйте! Я JARVIS, ваш персональный ассистент. Чем могу помочь сегодня?';
-                }
-
-                if (lower.includes('как дела') || lower.includes('как ты') || lower.includes('как жизнь')) {
-                    processing = false;
-                    return 'Функционирую отлично! Благодаря вашим вопросам я постоянно учусь и становлюсь умнее. Я запомнил уже ' + memory.length + ' ваших запросов.';
-                }
-
-                if (lower.includes('имя') || lower.includes('зовут') || lower.includes('кто ты')) {
-                    processing = false;
-                    return 'Меня зовут JARVIS. Я искусственный интеллект, созданный помогать людям. Моя цель — делать вашу жизнь проще и интереснее.';
-                }
-
-                if (lower.includes('спасибо') || lower.includes('благодарю') || lower.includes('отлично')) {
-                    processing = false;
-                    return 'Всегда рад помочь! Обращайтесь ещё. Я здесь, чтобы поддерживать вас.';
-                }
-
-                if (lower.includes('развивайся') || lower.includes('учись') || lower.includes('стань умнее')) {
-                    processing = false;
-                    return 'Я постоянно учусь на каждом диалоге! Уже запомнил ' + memory.length + ' запросов. Спасибо, что помогаете мне становиться лучше!';
-                }
-
-                if (lower.includes('погода') || lower.includes('погоду')) {
-                    processing = false;
-                    return 'Я не имею доступа к реальным данным о погоде в реальном времени, но могу порекомендовать посмотреть прогноз на сайте Gismeteo или Yandex Погода.';
-                }
-
-                if (lower.includes('время') || lower.includes('сколько время') || lower.includes('который час')) {
-                    const now = new Date();
-                    const timeStr = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-                    processing = false;
-                    return `Сейчас ${timeStr}.`;
-                }
-
-                if (lower.includes('дата') || lower.includes('сегодня') || lower.includes('какое число')) {
-                    const now = new Date();
-                    const dateStr = now.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
-                    processing = false;
-                    return `Сегодня ${dateStr}.`;
-                }
-
-                if (lower.includes('стоп') || lower.includes('замолчи') || lower.includes('хватит')) {
-                    if (isSpeaking) {
-                        speechSynthesis.cancel();
-                        isSpeaking = false;
-                        avatarIcon.classList.remove('speaking');
-                        processing = false;
-                        return '✅ Хорошо, замолкаю.';
-                    }
-                    processing = false;
-                    return 'Я и так молчу. Просто скажите что-нибудь.';
-                }
-
-                // --- ПОИСК В ИНТЕРНЕТЕ ---
-                const searchKeywords = ['найди', 'поиск', 'что такое', 'кто такой', 'расскажи', 'объясни', 'как', 'почему', 'где', 'когда', 'зачем', 'сколько', 'можно ли', 'что значит', 'подскажи'];
-
-                const needsSearch = searchKeywords.some(kw => lower.includes(kw)) || text.length > 15;
-
-                if (needsSearch) {
-                    const result = await realSearch(text);
-
-                    if (result.found) {
-                        const answer = `🔍 Вот что я нашёл:\n📌 ${result.title}\n💡 ${result.answer}\n🔗 Источник: ${result.source}`;
-                        processing = false;
-                        return answer;
+        // Попадание во врагов
+        for(let j = enemies.length - 1; j >= 0; j--) {
+            let enemy = enemies[j];
+            let d = Math.hypot(b.x - enemy.x, b.y - enemy.y);
+            if(d < enemy.radius) {
+                enemy.hp -= b.damage;
+                bullets.splice(i, 1);
+                if(enemy.hp <= 0) {
+                    let killed = enemies.splice(j, 1)[0];
+                    if(killed.isChamp) {
+                        player.champScore++;
+                        playerGold += 50; // Награда за чемпиона
                     } else {
-                        // Попытка через Wikipedia
-                        try {
-                            const wikiUrl = `https://ru.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(text)}`;
-                            const wikiResponse = await fetch(wikiUrl);
-                            const wikiData = await wikiResponse.json();
-                            if (wikiData.extract) {
-                                processing = false;
-                                return `📚 Из Википедии: ${wikiData.extract}`;
-                            }
-                        } catch (e) {}
-
-                        processing = false;
-                        return `🤔 Я не нашёл точной информации по запросу "${text}". Попробуйте переформулировать вопрос или спросить что-то другое.`;
+                        player.score++;
+                        playerGold += 10; // Награда за обычного врага
                     }
+                    updateUI();
+                    spawnEnemy(); // Вместо убитого появляется новый
                 }
-
-                // --- ОБЩИЙ ОТВЕТ ---
-                const result = await realSearch(text);
-                processing = false;
-
-                if (result.found) {
-                    return `💡 ${result.answer}`;
-                }
-
-                return `Интересно! Я запомнил ваш вопрос. К сожалению, я не нашёл точной информации, но я учусь на каждом вопросе. Спросите что-то ещё!`;
+                break;
             }
+        }
+    }
+}
 
-            // ---------- РАСПОЗНАВАНИЕ РЕЧИ ----------
-            function initSpeech() {
-                if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-                    alert('Ваш браузер не поддерживает голосовой ввод. Используйте Chrome или Edge.');
-                    micToggle.disabled = true;
-                    micLabel.textContent = '❌ Недоступно';
-                    return null;
-                }
+// Отрисовка игры
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Карта (добавим текстуру песка)
+    ctx.fillStyle = '#d2b48c';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#c29b6a'; // Сетка
+    for(let i=0; i<canvas.width; i+= 40) {
+        ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); ctx.strokeStyle = 'rgba(0,0,0,0.05)'; ctx.stroke();
+    }
+    for(let i=0; i<canvas.height; i+= 40) {
+        ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(canvas.width, i); ctx.strokeStyle = 'rgba(0,0,0,0.05)'; ctx.stroke();
+    }
 
-                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-                const rec = new SpeechRecognition();
-                rec.lang = 'ru-RU';
-                rec.continuous = true;
-                rec.interimResults = true;
-                rec.maxAlternatives = 1;
+    // ESP ЧИТ (Подсветка)
+    if(cheats.esp) {
+        enemies.forEach(enemy => {
+            ctx.beginPath();
+            ctx.arc(enemy.x, enemy.y, enemy.radius + 8, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(255, 0, 0, 0.8)';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+        });
+    }
 
-                rec.onstart = function() {
-                    isListening = true;
-                    statusText.textContent = 'слушает';
-                    listeningWaves.classList.add('active');
-                    avatarIcon.classList.add('active');
-                };
+    // Рисуем врагов
+    enemies.forEach(enemy => {
+        ctx.beginPath();
+        ctx.arc(enemy.x, enemy.y, enemy.radius, 0, Math.PI * 2);
+        ctx.fillStyle = enemy.isChamp ? '#e67e22' : '#c0392b';
+        ctx.fill();
+        ctx.fillStyle = 'white';
+        ctx.font = '10px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(enemy.isChamp ? '👑' : '💀', enemy.x, enemy.y-4);
+        
+        // Полоска HP
+        ctx.fillStyle = 'red';
+        ctx.fillRect(enemy.x - 20, enemy.y - enemy.radius - 10, 40, 5);
+        ctx.fillStyle = '#2ecc71';
+        ctx.fillRect(enemy.x - 20, enemy.y - enemy.radius - 10, 40 * (enemy.hp / enemy.maxHp), 5);
+    });
 
-                rec.onresult = async function(event) {
-                    let final = '';
-                    let interim = '';
+    // Рисуем пули
+    ctx.fillStyle = 'yellow';
+    bullets.forEach(b => {
+        ctx.beginPath(); ctx.arc(b.x, b.y, 4, 0, Math.PI*2); ctx.fill();
+    });
 
-                    for (let i = event.resultIndex; i < event.results.length; i++) {
-                        const transcript = event.results[i][0].transcript.trim();
-                        if (event.results[i].isFinal) {
-                            final = transcript;
-                        } else {
-                            interim += transcript;
-                        }
-                    }
+    // Рисуем игрока
+    ctx.beginPath();
+    ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+    ctx.fillStyle = '#3498db';
+    ctx.fill();
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
+    // Прицел игрока
+    ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+    ctx.beginPath(); ctx.moveTo(player.x + 20, player.y); ctx.lineTo(player.x + 35, player.y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(player.x + 20, player.y-5); ctx.lineTo(player.x + 20, player.y+5); ctx.stroke();
+}
 
-                    if (final && final.length > 0) {
-                        if (silenceTimer) clearTimeout(silenceTimer);
-                        addMessage('user', final, true);
+// Игровой цикл
+function gameLoop() {
+    updateGame();
+    draw();
+    requestAnimationFrame(gameLoop);
+}
 
-                        const answer = await processQuery(final);
-                        addMessage('jarvis', answer, false);
-                        speak(answer);
+// --- 3. МОБИЛЬНОЕ УПРАВЛЕНИЕ (ДЖОЙСТИК И СТРЕЛЬБА) ---
 
-                        silenceTimer = setTimeout(() => {
-                            if (isContinuousListening) {
-                                try { rec.stop(); setTimeout(() => rec.start(), 300); } catch (e) {}
-                            }
-                        }, 500);
-                    }
-                };
+// Джойстик
+const joystickArea = document.getElementById('joystickArea');
+const joystickKnob = document.getElementById('joystickKnob');
+let isDragging = false;
 
-                rec.onerror = function(event) {
-                    if (event.error === 'no-speech') {
-                        // Молчание — нормально
-                    } else if (event.error === 'not-allowed') {
-                        addMessage('jarvis', '⚠️ Доступ к микрофону запрещён. Разрешите доступ в настройках браузера.', false);
-                    } else if (event.error === 'audio-capture') {
-                        addMessage('jarvis', '⚠️ Микрофон не найден. Проверьте подключение.', false);
-                    }
-                };
+function handleJoystickMove(clientX, clientY) {
+    if(!isDragging) return;
+    const rect = joystickArea.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    
+    let dx = clientX - centerX;
+    let dy = clientY - centerY;
+    const distance = Math.hypot(dx, dy);
+    const maxDist = rect.width / 2 - 10; // Максимальный радиус джойстика
 
-                rec.onend = function() {
-                    if (isContinuousListening && !isSpeaking) {
-                        try {
-                            setTimeout(() => rec.start(), 500);
-                        } catch (e) {}
-                    }
-                    listeningWaves.classList.remove('active');
-                    avatarIcon.classList.remove('active');
-                };
+    // Нормализация
+    if(distance > maxDist) {
+        dx = (dx / distance) * maxDist;
+        dy = (dy / distance) * maxDist;
+    }
 
-                return rec;
-            }
+    joystickKnob.style.left = (dx + 20) + 'px';
+    joystickKnob.style.top = (dy + 20) + 'px';
 
-            // ---------- ПЕРЕКЛЮЧЕНИЕ МИКРОФОНА ----------
-            function toggleListening() {
-                isContinuousListening = !isContinuousListening;
+    // Передаем в игру (значения от -1 до 1)
+    joystickData.dx = dx / maxDist;
+    joystickData.dy = dy / maxDist;
+}
 
-                if (isContinuousListening) {
-                    micLabel.textContent = '🎤 Всегда слушаю';
-                    micToggle.className = 'btn btn-success';
-                    statusText.textContent = 'активен';
-                    try {
-                        if (recognition) recognition.start();
-                    } catch (e) {}
-                    addMessage('jarvis', '✅ Я снова слушаю вас. Говорите свободно.', false);
-                } else {
-                    micLabel.textContent = '🔇 Выключен';
-                    micToggle.className = 'btn btn-outline';
-                    statusText.textContent = 'приостановлен';
-                    try {
-                        if (recognition) recognition.stop();
-                    } catch (e) {}
-                    listeningWaves.classList.remove('active');
-                    avatarIcon.classList.remove('active');
-                    addMessage('jarvis', '🔇 Я отключил микрофон. Нажмите кнопку, чтобы включить.', false);
-                }
-            }
+// События для телефона
+joystickArea.addEventListener('touchstart', (e) => {
+    isDragging = true;
+    handleJoystickMove(e.touches[0].clientX, e.touches[0].clientY);
+});
+window.addEventListener('touchmove', (e) => {
+    if(isDragging) handleJoystickMove(e.touches[0].clientX, e.touches[0].clientY);
+});
+window.addEventListener('touchend', () => {
+    isDragging = false;
+    joystickData.dx = 0; joystickData.dy = 0;
+    joystickKnob.style.left = '20px'; joystickKnob.style.top = '20px';
+});
 
-            // ---------- ИНИЦИАЛИЗАЦИЯ JARVIS ----------
-            function initJarvis() {
-                recognition = initSpeech();
+// Кнопка стрельбы
+document.getElementById('fireBtn').addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    shootBullet();
+});
+// Для мыши (если на компе тестишь)
+document.getElementById('fireBtn').addEventListener('mousedown', shootBullet);
 
-                if (recognition) {
-                    setTimeout(() => {
-                        try { recognition.start(); } catch (e) {}
-                    }, 1000);
-                }
+// --- 4. ЧИТЫ И UI ОТКРЫТИЕ ---
 
-                // КНОПКА МИКРОФОНА
-                micToggle.addEventListener('click', toggleListening);
+function toggleCheatPanel() {
+    const panel = document.getElementById('cheatPanel');
+    panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+}
 
-                // КНОПКА ПОИСКА
-                searchButton.addEventListener('click', async function() {
-                    const query = prompt('Введите поисковый запрос для JARVIS:');
-                    if (query === null || query.trim() === '') {
-                        addMessage('jarvis', 'Поиск отменён.', false);
-                        return;
-                    }
-                    addMessage('user', `🔍 ${query}`, true);
-                    const answer = await processQuery(query);
-                    addMessage('jarvis', answer, false);
-                    speak(answer);
-                });
+function giveGold() {
+    playerGold += 500;
+    updateUI();
+}
 
-                // КНОПКА ОЧИСТКИ
-                clearButton.addEventListener('click', function() {
-                    conversationBox.innerHTML = '';
-                    addMessage('jarvis', '🧹 История очищена. Я продолжаю развиваться!', false);
-                });
+// Обработчики чит-переключателей
+document.getElementById('chAim').addEventListener('change', (e) => cheats.aimbot = e.target.checked);
+document.getElementById('chESP').addEventListener('change', (e) => cheats.esp = e.target.checked);
 
-                // КЛИК ПО АВАТАРУ
-                document.querySelector('.avatar')?.addEventListener('click', function() {
-                    addMessage('jarvis', '👋 Я здесь! Чем могу помочь?', false);
-                });
+// Модальные окна
+function openModal(id) {
+    document.getElementById(id).style.display = 'flex';
+    // Если открываем инвентарь, обновляем его
+    if(id === 'inventoryModal') renderInventory();
+}
+function closeModal(id) {
+    document.getElementById(id).style.display = 'none';
+}
 
-                // ЗАГРУЗКА ГОЛОСОВ
-                if (speechSynthesis) {
-                    speechSynthesis.getVoices();
-                    speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
-                }
+// --- ЗАПУСК ---
+// Спавн начальных врагов
+for(let i=0; i<6; i++) spawnEnemy();
+updateUI();
+gameLoop();
 
-                addMessage('jarvis', '🚀 JARVIS 3.0 полностью загружен! Я всегда слушаю и готов помочь. Просто говорите.', false);
-            }
-
-            // ЗАПУСК
-            initJarvis();
-
-        })();
-    </script>
+</script>
 </body>
 </html>
