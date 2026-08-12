@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Standoff 2 - Sandstone Ultimate HD</title>
+    <title>Standoff 2 - Sandstone</title>
     <style>
         * {
             box-sizing: border-box;
@@ -17,7 +17,7 @@
             overflow: hidden; background-color: #000; color: #fff;
         }
 
-        /* --- Главное меню --- */
+        /* --- Главный экран --- */
         #menu-screen {
             position: absolute; top: 0; left: 0;
             width: 100%; height: 100%;
@@ -25,10 +25,10 @@
             justify-content: space-between; align-items: center;
             padding: 20px;
             background: linear-gradient(135deg, #1c130d 0%, #0d0805 100%);
-            z-index: 20;
+            z-index: 50;
         }
 
-        .header { text-align: center; margin-top: 10px; }
+        .header { text-align: center; margin-top: 15px; }
         .header h1 {
             font-size: 2.2rem; color: #f4a261;
             text-shadow: 0 0 12px rgba(244, 162, 97, 0.6);
@@ -46,7 +46,7 @@
         /* --- HUD --- */
         #game-hud {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            display: none; pointer-events: none; z-index: 5;
+            display: none; pointer-events: none; z-index: 10;
         }
 
         #crosshair {
@@ -60,63 +60,63 @@
         #crosshair::after { top: -6px; left: 3px; width: 2px; height: 20px; }
 
         .hud-panel {
-            position: absolute; top: 15px; background: rgba(20, 10, 5, 0.75);
+            position: absolute; top: 15px; background: rgba(20, 10, 5, 0.85);
             padding: 8px 16px; border-radius: 6px; font-size: 1.1rem; font-weight: bold;
-            border: 1px solid rgba(244, 162, 97, 0.3); pointer-events: auto;
+            border: 1px solid rgba(244, 162, 97, 0.4); pointer-events: auto;
         }
         #health-hud { left: 15px; color: #2a9d8f; }
         #score-hud { right: 70px; color: #f4a261; }
         
         #settings-btn {
             position: absolute; top: 15px; right: 15px;
-            width: 42px; height: 42px; background: rgba(20, 10, 5, 0.8);
-            border: 1px solid #f4a261; border-radius: 6px; font-size: 1.2rem;
+            width: 44px; height: 44px; background: rgba(20, 10, 5, 0.9);
+            border: 1.5px solid #f4a261; border-radius: 8px; font-size: 1.3rem;
             display: flex; justify-content: center; align-items: center;
-            cursor: pointer; pointer-events: auto; z-index: 6;
+            cursor: pointer; pointer-events: auto; z-index: 100;
         }
 
         #esp-canvas {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; z-index: 4;
+            pointer-events: none; z-index: 5;
         }
 
         /* --- ДВИГАЮЩЕЕСЯ МОД МЕНЮ (DRAGGABLE) --- */
         #mod-container {
-            position: absolute; top: 70px; left: 15px; z-index: 9999; pointer-events: auto;
+            position: absolute; top: 70px; left: 15px; z-index: 900; pointer-events: auto;
             touch-action: none;
         }
         #mod-toggle-btn {
             background: #9d4edd; color: #fff; border: 2px solid #fff;
-            padding: 8px 14px; border-radius: 8px; font-weight: bold; font-size: 0.85rem;
+            padding: 8px 16px; border-radius: 8px; font-weight: bold; font-size: 0.9rem;
             cursor: move; box-shadow: 0 0 15px rgba(157, 78, 221, 0.8); display: block;
         }
         #mod-menu {
-            margin-top: 8px; width: 230px; background: rgba(20, 15, 25, 0.95);
+            margin-top: 8px; width: 220px; background: rgba(20, 15, 25, 0.95);
             border: 2px solid #9d4edd; border-radius: 12px; padding: 14px;
             display: none; flex-direction: column; gap: 12px; box-shadow: 0 0 25px rgba(0, 0, 0, 0.9);
         }
-        #mod-menu h3 { color: #c77dff; font-size: 1rem; text-align: center; border-bottom: 1px solid #444; padding-bottom: 4px; }
+        #mod-menu h3 { color: #c77dff; font-size: 0.95rem; text-align: center; border-bottom: 1px solid #444; padding-bottom: 4px; }
         .mod-option { display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem; cursor: pointer; }
         .mod-option input[type="checkbox"] { width: 18px; height: 18px; accent-color: #9d4edd; cursor: pointer; }
 
-        /* --- ОКИ НАСТРОЕК (SETTINGS) --- */
+        /* --- НАСТРОЙКИ --- */
         #settings-modal {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 320px; background: rgba(15, 10, 8, 0.96); border: 2px solid #f4a261;
+            width: 310px; background: rgba(18, 12, 10, 0.98); border: 2px solid #f4a261;
             border-radius: 12px; padding: 20px; display: none; flex-direction: column; gap: 15px;
-            z-index: 10000; pointer-events: auto; box-shadow: 0 0 30px rgba(0,0,0,0.9);
+            z-index: 1000; pointer-events: auto; box-shadow: 0 0 40px rgba(0,0,0,0.95);
         }
         #settings-modal h2 { text-align: center; color: #f4a261; font-size: 1.3rem; border-bottom: 1px solid #333; padding-bottom: 8px; }
         .setting-group { display: flex; flex-direction: column; gap: 6px; font-size: 0.85rem; color: #e9c46a; }
         .setting-group select, .setting-group input {
             background: #2b1c14; border: 1px solid #5a3e2e; color: #fff; padding: 6px; border-radius: 4px;
         }
-        .close-settings { background: #e76f51; color: #fff; border: none; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 5px; }
+        .close-settings { background: #e76f51; color: #fff; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 5px; }
 
         /* --- Сенсорное управление --- */
         #touch-controls {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            display: none; z-index: 10;
+            display: none; z-index: 15;
         }
         #joystick-zone {
             position: absolute; bottom: 30px; left: 30px; width: 130px; height: 130px;
@@ -127,10 +127,10 @@
             background: rgba(244, 162, 97, 0.9); border-radius: 50%;
         }
         #fire-btn {
-            position: absolute; bottom: 40px; right: 40px; width: 80px; height: 80px;
+            position: absolute; bottom: 40px; right: 40px; width: 85px; height: 85px;
             background: rgba(230, 57, 70, 0.85); border: 2px solid #fff; border-radius: 50%;
             display: flex; justify-content: center; align-items: center; font-weight: bold;
-            font-size: 0.9rem; box-shadow: 0 0 15px rgba(230, 57, 70, 0.5);
+            font-size: 0.95rem; box-shadow: 0 0 15px rgba(230, 57, 70, 0.5);
         }
         #touch-look-zone { position: absolute; top: 0; right: 0; width: 50%; height: 100%; }
     </style>
@@ -141,7 +141,7 @@
     <div id="menu-screen">
         <div class="header">
             <h1>SANDSTONE ULTIMATE</h1>
-            <p>Draggable Mod Menu & Custom Settings</p>
+            <p>Standoff 2 - Fixed Hands & M4A1 Sound</p>
         </div>
 
         <div class="mode-selection">
@@ -159,9 +159,9 @@
         <div id="settings-btn">⚙️</div>
     </div>
 
-    <!-- ДВИГАЕМОЕ МОД МЕНЮ -->
+    <!-- МОД МЕНЮ -->
     <div id="mod-container">
-        <button id="mod-toggle-btn">🟣 MOD MENU (Зажми для перетаскивания)</button>
+        <button id="mod-toggle-btn">🟣 MOD MENU</button>
         <div id="mod-menu">
             <h3>DEV MOD MENU</h3>
             <label class="mod-option">
@@ -196,7 +196,7 @@
         </div>
         <div class="setting-group">
             <label>Громкость выстрелов:</label>
-            <input type="range" id="setting-volume" min="0" max="100" value="70">
+            <input type="range" id="setting-volume" min="0" max="100" value="80">
         </div>
         <button class="close-settings" id="close-settings">ЗАКРЫТЬ</button>
     </div>
@@ -220,11 +220,11 @@
         let pitch = 0, yaw = 0;
         let sensMultiplier = 1.0;
 
-        // Руки и Выстрелы
-        let handsGunGroup, muzzleFlash, recoilOffset = 0, bobbingAngle = 0;
+        // Оружие и Руки
+        let handsGunGroup, muzzleFlash, recoilOffset = 0;
 
         // Звуковой контекст (Web Audio API)
-        let audioCtx, masterVolume = 0.7;
+        let audioCtx, masterVolume = 0.8;
 
         // Мод Меню & ESP
         const modSettings = { esp: false, aim: false, aimFov: 120 };
@@ -245,6 +245,7 @@
             scene.fog = new THREE.FogExp2(0xdd9255, 0.008);
 
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            scene.add(camera);
 
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
@@ -257,15 +258,15 @@
             resizeEspCanvas();
 
             // Свет
-            const ambientLight = new THREE.AmbientLight(0xfff1e6, 0.8);
+            const ambientLight = new THREE.AmbientLight(0xfff1e6, 0.95);
             scene.add(ambientLight);
 
-            const sunLight = new THREE.DirectionalLight(0xffe8d6, 1.2);
+            const sunLight = new THREE.DirectionalLight(0xffe8d6, 1.3);
             sunLight.position.set(50, 80, 30);
             sunLight.castShadow = true;
             scene.add(sunLight);
 
-            // Текстуры и цвета
+            // Материалы
             sandWallMat = new THREE.MeshStandardMaterial({ color: 0xdd9255, roughness: 0.8 });
             darkSandMat = new THREE.MeshStandardMaterial({ color: 0xaa6c39, roughness: 0.85 });
             woodCrateMat = new THREE.MeshStandardMaterial({ color: 0x8b5e3c, roughness: 0.6 });
@@ -282,6 +283,7 @@
             document.getElementById('start-pc').addEventListener('click', () => {
                 isMobileMode = false;
                 initAudio();
+                startGame();
                 document.body.requestPointerLock();
             });
 
@@ -296,18 +298,14 @@
             document.addEventListener('mousemove', onMouseMove);
 
             document.addEventListener('mousedown', (e) => {
-                const settingsModal = document.getElementById('settings-modal');
-                if (!isMobileMode && isGameActive && settingsModal.style.display !== 'flex') {
+                const modal = document.getElementById('settings-modal');
+                if (!isMobileMode && isGameActive && modal.style.display !== 'flex') {
                     if (document.pointerLockElement !== document.body) {
                         document.body.requestPointerLock();
                     } else if (e.button === 0) {
                         shoot();
                     }
                 }
-            });
-
-            document.addEventListener('pointerlockchange', () => {
-                if (!isMobileMode && document.pointerLockElement === document.body) startGame();
             });
 
             setupModMenuDragAndEvents();
@@ -322,26 +320,54 @@
             }
         }
 
-        // Генерация звука выстрела M4A1
+        // МОЩНЫЙ И РЕАЛИСТИЧНЫЙ ЗВУК ВЫСТРЕЛА M4A1 (СИНТЕЗ)
         function playGunshotSound() {
             if (!audioCtx || masterVolume <= 0) return;
 
             const now = audioCtx.currentTime;
+
+            // 1. Шум порохового взрыва (Noise Burst)
+            const bufferSize = audioCtx.sampleRate * 0.18;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = buffer;
+
+            const noiseFilter = audioCtx.createBiquadFilter();
+            noiseFilter.type = 'bandpass';
+            noiseFilter.frequency.value = 1200;
+            noiseFilter.Q.value = 1.2;
+
+            const noiseGain = audioCtx.createGain();
+            noiseGain.gain.setValueAtTime(masterVolume * 1.2, now);
+            noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+
+            noise.connect(noiseFilter);
+            noiseFilter.connect(noiseGain);
+            noiseGain.connect(audioCtx.destination);
+
+            // 2. Басовый удар затвора (Low Pitch Transient)
             const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
+            const oscGain = audioCtx.createGain();
 
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(300, now);
-            osc.frequency.exponentialRampToValueAtTime(30, now + 0.15);
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(180, now);
+            osc.frequency.exponentialRampToValueAtTime(30, now + 0.12);
 
-            gain.gain.setValueAtTime(masterVolume, now);
-            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+            oscGain.gain.setValueAtTime(masterVolume * 0.9, now);
+            oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
 
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
+            osc.connect(oscGain);
+            oscGain.connect(audioCtx.destination);
 
+            noise.start(now);
             osc.start(now);
-            osc.stop(now + 0.15);
+            noise.stop(now + 0.18);
+            osc.stop(now + 0.12);
         }
 
         function resizeEspCanvas() {
@@ -351,8 +377,7 @@
 
         // --- КАРТА SANDSTONE ---
         function createSandstoneMap() {
-            obstacles = [];
-            spawnZones = [];
+            obstacles = []; spawnZones = [];
 
             const floor = new THREE.Mesh(
                 new THREE.PlaneGeometry(160, 160),
@@ -362,22 +387,18 @@
             floor.receiveShadow = true;
             scene.add(floor);
 
-            // Периметр
             createWall(0, 8, -80, 160, 16, 2, sandWallMat);
             createWall(0, 8, 80, 160, 16, 2, sandWallMat);
             createWall(-80, 8, 0, 2, 16, 160, sandWallMat);
             createWall(80, 8, 0, 2, 16, 160, sandWallMat);
 
-            // Коридоры и Мид
             createWall(-15, 6, -10, 2, 12, 60, sandWallMat);
             createWall(15, 6, 0, 2, 12, 50, sandWallMat);
-            createWall(0, 10, 10, 30, 4, 4, sandWallMat); // Арка
+            createWall(0, 10, 10, 30, 4, 4, sandWallMat);
 
-            // Плент A
             createWall(45, 6, -40, 40, 12, 2, plasterMat);
             createWall(25, 6, -60, 2, 12, 40, plasterMat);
 
-            // Плент B
             createWall(-45, 6, 40, 35, 12, 2, darkSandMat);
             createWall(-25, 6, 55, 2, 12, 30, darkSandMat);
 
@@ -416,33 +437,45 @@
             scene.add(barrel); obstacles.push(barrel);
         }
 
-        // --- МОДЕЛЬ РУК С M4A1 ---
+        // --- МОДЕЛЬ РУК С M4A1 (ФИКС ОТОБРАЖЕНИЯ) ---
         function createM4A1WithHands() {
             handsGunGroup = new THREE.Group();
-            const skinMat = new THREE.MeshStandardMaterial({ color: 0xd2b48c, roughness: 0.6 });
-            const gloveMat = new THREE.MeshStandardMaterial({ color: 0x2b2d42, roughness: 0.5 });
-            const gunMetalMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, metalness: 0.8, roughness: 0.3 });
+
+            const skinMat = new THREE.MeshStandardMaterial({ color: 0xd2a379, roughness: 0.5 });
+            const gloveMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.4 });
+            const gunMetalMat = new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.8, roughness: 0.2 });
 
             const m4a1 = new THREE.Group();
-            const receiver = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.14, 0.45), gunMetalMat);
-            const suppressor = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.3, 12), gunMetalMat);
+            const body = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.12, 0.45), gunMetalMat);
+            const mag = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.18, 0.08), gunMetalMat);
+            mag.position.set(0, -0.1, -0.05);
+            mag.rotation.x = 0.2;
+
+            const suppressor = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.35, 12), gunMetalMat);
             suppressor.rotation.x = Math.PI / 2;
-            suppressor.position.set(0, 0.01, -0.75);
+            suppressor.position.set(0, 0.01, -0.38);
 
-            m4a1.add(receiver, suppressor);
+            m4a1.add(body, mag, suppressor);
 
-            muzzleFlash = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 8), new THREE.MeshBasicMaterial({ color: 0xffcc00, transparent: true, opacity: 0 }));
-            muzzleFlash.position.set(0, 0.01, -0.95);
+            muzzleFlash = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 8), new THREE.MeshBasicMaterial({ color: 0xffcc00, transparent: true, opacity: 0 }));
+            muzzleFlash.position.set(0, 0.01, -0.58);
             m4a1.add(muzzleFlash);
 
-            const rightHand = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.45, 12), skinMat);
-            rightHand.position.set(0.18, -0.22, 0.15);
-            rightHand.rotation.set(-0.6, -0.3, 0.4);
+            // Правая рука
+            const rightArm = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.06, 0.4, 12), skinMat);
+            rightArm.position.set(0.12, -0.15, 0.05);
+            rightArm.rotation.set(-0.5, -0.2, 0.2);
 
-            handsGunGroup.add(m4a1, rightHand);
-            handsGunGroup.position.set(0.22, -0.26, -0.42);
+            // Левая рука
+            const leftArm = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.06, 0.45, 12), skinMat);
+            leftArm.position.set(-0.12, -0.14, -0.15);
+            leftArm.rotation.set(-0.3, 0.4, -0.3);
+
+            handsGunGroup.add(m4a1, rightArm, leftArm);
+
+            // Точные координаты относительно глаз/камеры
+            handsGunGroup.position.set(0.18, -0.22, -0.38);
             camera.add(handsGunGroup);
-            scene.add(camera);
         }
 
         function spawnTarget() {
@@ -489,7 +522,7 @@
             }
         }
 
-        // --- ДВИГАЮЩЕЕСЯ (DRAGGABLE) МОД МЕНЮ ---
+        // --- ДВИГАЕМОЕ МОД МЕНЮ (DRAGGABLE) ---
         function setupModMenuDragAndEvents() {
             const modContainer = document.getElementById('mod-container');
             const modBtn = document.getElementById('mod-toggle-btn');
@@ -502,11 +535,9 @@
                 const clientX = e.touches ? e.touches[0].clientX : e.clientX;
                 const clientY = e.touches ? e.touches[0].clientY : e.clientY;
                 isDragging = false;
-                startX = clientX;
-                startY = clientY;
+                startX = clientX; startY = clientY;
                 const rect = modContainer.getBoundingClientRect();
-                initialLeft = rect.left;
-                initialTop = rect.top;
+                initialLeft = rect.left; initialTop = rect.top;
 
                 window.addEventListener('mousemove', onDrag);
                 window.addEventListener('touchmove', onDrag);
@@ -536,7 +567,7 @@
             modBtn.addEventListener('mousedown', startDrag);
             modBtn.addEventListener('touchstart', startDrag);
 
-            modBtn.addEventListener('click', (e) => {
+            modBtn.addEventListener('click', () => {
                 if (!isDragging) {
                     modMenu.style.display = (modMenu.style.display === 'flex') ? 'none' : 'flex';
                 }
@@ -550,20 +581,28 @@
             });
         }
 
-        // --- НАСТРОЙКИ ---
+        // --- НАСТРОЙКИ (ФИКС ОТКРЫТИЯ) ---
         function setupSettingsUI() {
             const modal = document.getElementById('settings-modal');
             const openBtn = document.getElementById('settings-btn');
             const closeBtn = document.getElementById('close-settings');
 
-            openBtn.addEventListener('click', () => {
+            const openSettings = (e) => {
+                e.stopPropagation();
+                if (document.pointerLockElement) {
+                    document.exitPointerLock();
+                }
                 modal.style.display = 'flex';
-                if (document.pointerLockElement) document.exitPointerLock();
-            });
+            };
+
+            openBtn.addEventListener('click', openSettings);
+            openBtn.addEventListener('touchstart', openSettings);
 
             closeBtn.addEventListener('click', () => {
                 modal.style.display = 'none';
-                if (!isMobileMode && isGameActive) document.body.requestPointerLock();
+                if (!isMobileMode && isGameActive) {
+                    document.body.requestPointerLock();
+                }
             });
 
             document.getElementById('setting-graphics').addEventListener('change', (e) => {
@@ -799,7 +838,7 @@
                 camera.position.y = 1.7;
 
                 recoilOffset += (0 - recoilOffset) * 0.15;
-                handsGunGroup.position.z = -0.42 + recoilOffset;
+                handsGunGroup.position.z = -0.38 + recoilOffset;
 
                 processModFeatures();
             }
