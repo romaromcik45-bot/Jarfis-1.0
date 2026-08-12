@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Standoff / CS 3D Crossplatform</title>
+    <title>Standoff 2 - Sandstone 3D</title>
     <style>
         * {
             box-sizing: border-box;
@@ -18,11 +18,11 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background-color: #121212;
+            background-color: #d4a373;
             color: #fff;
         }
 
-        /* --- Меню --- */
+        /* --- Главное меню --- */
         #menu-screen {
             position: absolute;
             top: 0; left: 0;
@@ -32,17 +32,17 @@
             justify-content: space-between;
             align-items: center;
             padding: 20px;
-            background: linear-gradient(135deg, #1a1c23 0%, #0d0e12 100%);
+            background: linear-gradient(135deg, #2b1e16 0%, #170d08 100%);
             z-index: 20;
         }
 
         .header { text-align: center; margin-top: 10px; }
         .header h1 {
             font-size: 2.2rem;
-            color: #ff9d00;
-            text-shadow: 0 0 10px rgba(255, 157, 0, 0.5);
+            color: #f4a261;
+            text-shadow: 0 0 12px rgba(244, 162, 97, 0.6);
         }
-        .header p { color: #8a8d9b; font-size: 0.9rem; margin-top: 5px; }
+        .header p { color: #e9c46a; font-size: 0.9rem; margin-top: 5px; }
 
         .gallery-container { width: 100%; max-width: 800px; }
         .screenshots {
@@ -51,10 +51,10 @@
             gap: 10px;
         }
         .screen-card {
-            background: #222531;
+            background: #3a281d;
             border-radius: 8px;
             overflow: hidden;
-            border: 1px solid #333748;
+            border: 1px solid #5a3e2e;
             text-align: center;
             font-size: 0.8rem;
             padding-bottom: 8px;
@@ -65,10 +65,11 @@
             justify-content: center;
             align-items: center;
             font-weight: bold;
+            color: #fff;
         }
-        .mock-1 { background: linear-gradient(45deg, #2b32b2, #1488cc); }
-        .mock-2 { background: linear-gradient(45deg, #cc2b5e, #753a88); }
-        .mock-3 { background: linear-gradient(45deg, #42275a, #734b6d); }
+        .mock-1 { background: linear-gradient(45deg, #e76f51, #f4a261); }
+        .mock-2 { background: linear-gradient(45deg, #2a9d8f, #e9c46a); }
+        .mock-3 { background: linear-gradient(45deg, #d4a373, #875c36); }
 
         .mode-selection {
             display: flex;
@@ -82,12 +83,12 @@
             padding: 14px;
             font-size: 1rem;
             font-weight: bold;
-            color: #000;
-            background: #ff9d00;
+            color: #170d08;
+            background: #f4a261;
             border: none;
             border-radius: 6px;
             cursor: pointer;
-            box-shadow: 0 0 10px rgba(255, 157, 0, 0.3);
+            box-shadow: 0 0 10px rgba(244, 162, 97, 0.4);
         }
         .btn:active { transform: scale(0.98); }
 
@@ -108,7 +109,7 @@
             transform: translate(-50%, -50%);
         }
         #crosshair::before, #crosshair::after {
-            content: ''; position: absolute; background: rgba(0, 255, 0, 0.8);
+            content: ''; position: absolute; background: rgba(0, 255, 0, 0.85);
         }
         #crosshair::before { top: 4px; left: -8px; width: 26px; height: 2px; }
         #crosshair::after { top: -8px; left: 4px; width: 2px; height: 26px; }
@@ -116,16 +117,16 @@
         .hud-panel {
             position: absolute;
             top: 15px;
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(20, 10, 5, 0.7);
             padding: 8px 16px;
             border-radius: 6px;
             font-size: 1.1rem;
             font-weight: bold;
+            border: 1px solid rgba(244, 162, 97, 0.3);
         }
-        #health-hud { left: 15px; color: #4ade80; }
-        #score-hud { right: 15px; color: #ff9d00; }
+        #health-hud { left: 15px; color: #2a9d8f; }
+        #score-hud { right: 15px; color: #f4a261; }
 
-        /* Canvas для ESP и Окружности Аима */
         #esp-canvas {
             position: absolute;
             top: 0; left: 0;
@@ -134,7 +135,7 @@
             z-index: 4;
         }
 
-        /* --- Абсолютный слой для Мод Меню --- */
+        /* --- Мод Меню --- */
         #mod-container {
             position: absolute;
             top: 60px; left: 15px;
@@ -143,7 +144,7 @@
         }
 
         #mod-toggle-btn {
-            background: #a855f7;
+            background: #9d4edd;
             color: #fff;
             border: 2px solid #fff;
             padding: 10px 16px;
@@ -151,15 +152,15 @@
             font-weight: bold;
             font-size: 0.9rem;
             cursor: pointer;
-            box-shadow: 0 0 15px rgba(168, 85, 247, 0.8);
+            box-shadow: 0 0 15px rgba(157, 78, 221, 0.8);
             display: block;
         }
 
         #mod-menu {
             margin-top: 10px;
             width: 250px;
-            background: rgba(18, 18, 24, 0.98);
-            border: 2px solid #a855f7;
+            background: rgba(20, 15, 25, 0.96);
+            border: 2px solid #9d4edd;
             border-radius: 12px;
             padding: 16px;
             display: none;
@@ -168,10 +169,10 @@
             box-shadow: 0 0 25px rgba(0, 0, 0, 0.9);
         }
         #mod-menu h3 {
-            color: #a855f7;
+            color: #c77dff;
             font-size: 1.1rem;
             text-align: center;
-            border-bottom: 1px solid #333;
+            border-bottom: 1px solid #444;
             padding-bottom: 6px;
         }
         .mod-option {
@@ -183,7 +184,7 @@
         }
         .mod-option input[type="checkbox"] {
             width: 20px; height: 20px;
-            accent-color: #a855f7;
+            accent-color: #9d4edd;
             cursor: pointer;
         }
         .slider-group {
@@ -193,11 +194,11 @@
             font-size: 0.85rem;
         }
         .slider-group input[type="range"] {
-            accent-color: #a855f7;
+            accent-color: #9d4edd;
             cursor: pointer;
         }
 
-        /* --- Сенсорное управление --- */
+        /* --- Сенсор --- */
         #touch-controls {
             position: absolute;
             top: 0; left: 0;
@@ -218,7 +219,7 @@
             position: absolute;
             top: 40px; left: 40px;
             width: 50px; height: 50px;
-            background: rgba(255, 157, 0, 0.85);
+            background: rgba(244, 162, 97, 0.9);
             border-radius: 50%;
         }
 
@@ -226,7 +227,7 @@
             position: absolute;
             bottom: 40px; right: 40px;
             width: 80px; height: 80px;
-            background: rgba(239, 68, 68, 0.85);
+            background: rgba(230, 57, 70, 0.85);
             border: 2px solid #fff;
             border-radius: 50%;
             display: flex;
@@ -234,7 +235,7 @@
             align-items: center;
             font-weight: bold;
             font-size: 0.9rem;
-            box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
+            box-shadow: 0 0 15px rgba(230, 57, 70, 0.5);
         }
 
         #touch-look-zone {
@@ -249,34 +250,33 @@
 
     <div id="menu-screen">
         <div class="header">
-            <h1>STANDOFF / CS 3D</h1>
-            <p>Выбери режим управления для старта</p>
+            <h1>SANDSTONE 3D</h1>
+            <p>Standoff 2 Map Recreation</p>
         </div>
 
         <div class="gallery-container">
             <div class="screenshots">
                 <div class="screen-card">
-                    <div class="screen-mockup mock-1">3D Map</div>
-                    <p>Карта со стенами</p>
+                    <div class="screen-mockup mock-1">PLANT A / B</div>
+                    <p>Точки закладки</p>
                 </div>
                 <div class="screen-card">
-                    <div class="screen-mockup mock-2">Crossplatform</div>
-                    <p>ПК и Мобильная</p>
+                    <div class="screen-mockup mock-2">MID & ARCS</div>
+                    <p>Песчаные арки</p>
                 </div>
                 <div class="screen-card">
-                    <div class="screen-mockup mock-3">Shooter</div>
-                    <p>Стрельба</p>
+                    <div class="screen-mockup mock-3">SAND TEXTURES</div>
+                    <p>Стиль Sandstone</p>
                 </div>
             </div>
         </div>
 
         <div class="mode-selection">
             <button class="btn" id="start-pc">ПК (Клавиатура + Мышь)</button>
-            <button class="btn" id="start-mobile" style="background:#4ade80;">Телефон (Сенсор)</button>
+            <button class="btn" id="start-mobile" style="background:#e9c46a;">Телефон (Сенсор)</button>
         </div>
     </div>
 
-    <!-- Canvas для ESP и FOV-круга -->
     <canvas id="esp-canvas"></canvas>
 
     <div id="game-hud">
@@ -285,7 +285,6 @@
         <div id="score-hud" class="hud-panel">УБИТО: <span id="score">0</span></div>
     </div>
 
-    <!-- Автономный слой для Мод-Меню -->
     <div id="mod-container">
         <button id="mod-toggle-btn">⚙️ MOD MENU</button>
         <div id="mod-menu">
@@ -315,37 +314,31 @@
 
     <script>
         let scene, camera, renderer;
-        let targets = [], obstacles = [], score = 0;
+        let targets = [], obstacles = [];
+        let score = 0;
         let isGameActive = false, isMobileMode = false;
 
-        // Движение
         const moveState = { forward: 0, right: 0 };
-        const speed = 12.0;
+        const speed = 11.0;
         let pitch = 0, yaw = 0;
 
-        // Оружие
         let gunGroup, muzzleFlash;
 
-        // Настройки Мод-Меню
-        const modSettings = {
-            esp: false,
-            aim: false,
-            aimFov: 120
-        };
-
-        // ESP Canvas
+        const modSettings = { esp: false, aim: false, aimFov: 120 };
         let espCanvas, espCtx;
 
-        // DOM элементы
         const menuScreen = document.getElementById('menu-screen');
         const gameHud = document.getElementById('game-hud');
         const touchControls = document.getElementById('touch-controls');
         const scoreEl = document.getElementById('score');
 
+        // Материалы Sandstone
+        let sandWallMat, darkSandMat, woodCrateMat, barrelMat, plasterMat;
+
         function init() {
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x1e1e24);
-            scene.fog = new THREE.FogExp2(0x1e1e24, 0.015);
+            scene.background = new THREE.Color(0xbde0fe); // Небо
+            scene.fog = new THREE.FogExp2(0xd4a373, 0.008);
 
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
@@ -354,25 +347,32 @@
             renderer.shadowMap.enabled = true;
             document.body.appendChild(renderer.domElement);
 
-            // Canvas для отрисовки ESP
             espCanvas = document.getElementById('esp-canvas');
             espCtx = espCanvas.getContext('2d');
             resizeEspCanvas();
 
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            // Свет (Яркое солнечное освещение)
+            const ambientLight = new THREE.AmbientLight(0xfff3b0, 0.7);
             scene.add(ambientLight);
 
-            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-            dirLight.position.set(20, 40, 20);
-            dirLight.castShadow = true;
-            scene.add(dirLight);
+            const sunLight = new THREE.DirectionalLight(0xffecd1, 1.1);
+            sunLight.position.set(40, 60, 20);
+            sunLight.castShadow = true;
+            scene.add(sunLight);
 
-            createMap();
+            // Инициализация материалов
+            sandWallMat = new THREE.MeshStandardMaterial({ color: 0xdd9255, roughness: 0.9 });
+            darkSandMat = new THREE.MeshStandardMaterial({ color: 0xb56576, roughness: 0.8 });
+            woodCrateMat = new THREE.MeshStandardMaterial({ color: 0x8b5e3c, roughness: 0.7 });
+            barrelMat = new THREE.MeshStandardMaterial({ color: 0x52796f, roughness: 0.5 });
+            plasterMat = new THREE.MeshStandardMaterial({ color: 0xf4f1de, roughness: 0.9 });
+
+            createSandstoneMap();
             createGun();
-            for (let i = 0; i < 6; i++) spawnTarget();
+            for (let i = 0; i < 7; i++) spawnTarget();
 
             window.addEventListener('resize', onWindowResize);
-            
+
             document.getElementById('start-pc').addEventListener('click', () => {
                 isMobileMode = false;
                 document.body.requestPointerLock();
@@ -386,9 +386,8 @@
             document.addEventListener('keydown', onKeyDown);
             document.addEventListener('keyup', onKeyUp);
             document.addEventListener('mousemove', onMouseMove);
-            
-            // Захват мыши при клике по игре (если меню закрыто)
-            document.addEventListener('mousedown', (e) => { 
+
+            document.addEventListener('mousedown', (e) => {
                 const modMenu = document.getElementById('mod-menu');
                 if (!isMobileMode && isGameActive && modMenu.style.display !== 'flex') {
                     if (document.pointerLockElement !== document.body) {
@@ -400,9 +399,7 @@
             });
 
             document.addEventListener('pointerlockchange', () => {
-                if (!isMobileMode) {
-                    if (document.pointerLockElement === document.body) startGame();
-                }
+                if (!isMobileMode && document.pointerLockElement === document.body) startGame();
             });
 
             setupModMenuUI();
@@ -415,99 +412,98 @@
             espCanvas.height = window.innerHeight;
         }
 
-        function setupModMenuUI() {
-            const modBtn = document.getElementById('mod-toggle-btn');
-            const modMenu = document.getElementById('mod-menu');
-            const modContainer = document.getElementById('mod-container');
-            const espCheck = document.getElementById('esp-toggle');
-            const aimCheck = document.getElementById('aim-toggle');
-            const fovSlider = document.getElementById('aim-fov');
-            const fovVal = document.getElementById('fov-val');
-
-            // Полный перехват событий кликов по элементам Мод-меню
-            ['click', 'mousedown', 'touchstart', 'touchend'].forEach(evt => {
-                modContainer.addEventListener(evt, (e) => e.stopPropagation());
-            });
-
-            // Переключение видимости меню
-            modBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-
-                if (modMenu.style.display === 'flex') {
-                    modMenu.style.display = 'none';
-                    if (!isMobileMode) document.body.requestPointerLock();
-                } else {
-                    modMenu.style.display = 'flex';
-                    if (!isMobileMode && document.pointerLockElement) {
-                        document.exitPointerLock(); // Высвобождение курсора на ПК
-                    }
-                }
-            });
-
-            // Тумблеры и слайдер
-            espCheck.addEventListener('change', (e) => modSettings.esp = e.target.checked);
-            aimCheck.addEventListener('change', (e) => modSettings.aim = e.target.checked);
-            fovSlider.addEventListener('input', (e) => {
-                modSettings.aimFov = parseInt(e.target.value);
-                fovVal.innerText = modSettings.aimFov;
-            });
-        }
-
-        function startGame() {
-            isGameActive = true;
-            menuScreen.style.display = 'none';
-            gameHud.style.display = 'block';
-            if (isMobileMode) touchControls.style.display = 'block';
-        }
-
-        function stopGame() {
-            isGameActive = false;
-            menuScreen.style.display = 'flex';
-            gameHud.style.display = 'none';
-            touchControls.style.display = 'none';
-        }
-
-        function createMap() {
+        // --- Создание карты Sandstone ---
+        function createSandstoneMap() {
             obstacles = [];
 
+            // Земля
             const floor = new THREE.Mesh(
-                new THREE.PlaneGeometry(80, 80),
-                new THREE.MeshStandardMaterial({ color: 0x2c2c34 })
+                new THREE.PlaneGeometry(120, 120),
+                new THREE.MeshStandardMaterial({ color: 0xd4a373, roughness: 0.95 })
             );
             floor.rotation.x = -Math.PI / 2;
             floor.receiveShadow = true;
             scene.add(floor);
 
-            const wallMat = new THREE.MeshStandardMaterial({ color: 0x3f3f4c });
-            const wallGeo1 = new THREE.BoxGeometry(80, 10, 2);
-            const wallGeo2 = new THREE.BoxGeometry(2, 10, 80);
+            // Внешние стены
+            createWall(0, 6, -60, 120, 12, 2, sandWallMat);
+            createWall(0, 6, 60, 120, 12, 2, sandWallMat);
+            createWall(-60, 6, 0, 2, 12, 120, sandWallMat);
+            createWall(60, 6, 0, 2, 12, 120, sandWallMat);
 
-            const N = new THREE.Mesh(wallGeo1, wallMat); N.position.set(0, 5, -40);
-            const S = new THREE.Mesh(wallGeo1, wallMat); S.position.set(0, 5, 40);
-            const E = new THREE.Mesh(wallGeo2, wallMat); E.position.set(40, 5, 0);
-            const W = new THREE.Mesh(wallGeo2, wallMat); W.position.set(-40, 5, 0);
+            // --- MID (Центр карты) ---
+            createWall(-10, 5, 0, 2, 10, 40, sandWallMat);
+            createWall(10, 5, -5, 2, 10, 30, sandWallMat);
 
-            [N, S, E, W].forEach(wall => {
-                scene.add(wall);
-                obstacles.push(wall);
-            });
+            // Арка на Миду
+            createWall(0, 9, 15, 20, 3, 3, sandWallMat);
 
-            const boxGeo = new THREE.BoxGeometry(4, 4, 4);
-            const boxMat = new THREE.MeshStandardMaterial({ color: 0xd97706 });
-            [[-10, 2, -10], [10, 2, -15], [-5, 2, 10], [15, 2, 5]].forEach(pos => {
-                const box = new THREE.Mesh(boxGeo, boxMat);
-                box.position.set(...pos);
-                box.castShadow = true;
-                box.receiveShadow = true;
-                scene.add(box);
-                obstacles.push(box);
-            });
+            // --- PLANT A (Справа) ---
+            createWall(35, 5, -35, 30, 10, 2, plasterMat);
+            createWall(20, 5, -45, 2, 10, 20, plasterMat);
+            // Плент-платформа A
+            const plantA = new THREE.Mesh(new THREE.BoxGeometry(12, 1.5, 12), sandWallMat);
+            plantA.position.set(38, 0.75, -48);
+            scene.add(plantA);
+            obstacles.push(plantA);
+
+            // --- PLANT B (Слева) ---
+            createWall(-35, 5, 35, 25, 10, 2, darkSandMat);
+            createWall(-22, 5, 45, 2, 10, 20, darkSandMat);
+            // Плент-платформа B
+            const plantB = new THREE.Mesh(new THREE.BoxGeometry(10, 1.5, 10), darkSandMat);
+            plantB.position.set(-42, 0.75, 48);
+            scene.add(plantB);
+            obstacles.push(plantB);
+
+            // --- Декорации и Ящики (Укрытия Sandstone) ---
+            // Деревянные ящики A/B/Mid
+            spawnCrate(36, 1.5, -46, 2.5, 3, 2.5);
+            spawnCrate(39, 1.5, -46, 2.5, 3, 2.5);
+            spawnCrate(37.5, 4.25, -46, 2.3, 2.5, 2.3);
+
+            spawnCrate(-40, 1.5, 46, 3, 3, 3);
+            spawnCrate(-43, 1.5, 46, 2.5, 2.5, 2.5);
+
+            spawnCrate(0, 1.25, -10, 2.5, 2.5, 2.5);
+            spawnCrate(-3, 1.25, -10, 2.5, 2.5, 2.5);
+            spawnCrate(15, 1.25, 10, 2.5, 2.5, 2.5);
+
+            // Бочки
+            spawnBarrel(-5, 1.25, 5);
+            spawnBarrel(32, 1.25, -38);
+        }
+
+        function createWall(x, y, z, w, h, d, mat) {
+            const wall = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+            wall.position.set(x, y, z);
+            wall.castShadow = true;
+            wall.receiveShadow = true;
+            scene.add(wall);
+            obstacles.push(wall);
+        }
+
+        function spawnCrate(x, y, z, w, h, d) {
+            const crate = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), woodCrateMat);
+            crate.position.set(x, y, z);
+            crate.castShadow = true;
+            crate.receiveShadow = true;
+            scene.add(crate);
+            obstacles.push(crate);
+        }
+
+        function spawnBarrel(x, y, z) {
+            const barrel = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 2.5, 12), barrelMat);
+            barrel.position.set(x, y, z);
+            barrel.castShadow = true;
+            barrel.receiveShadow = true;
+            scene.add(barrel);
+            obstacles.push(barrel);
         }
 
         function createGun() {
             gunGroup = new THREE.Group();
-            const body = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.18, 0.7), new THREE.MeshStandardMaterial({ color: 0x111111 }));
+            const body = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.18, 0.7), new THREE.MeshStandardMaterial({ color: 0x222222 }));
             const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.4), new THREE.MeshStandardMaterial({ color: 0x111111 }));
             barrel.rotation.x = Math.PI / 2;
             barrel.position.set(0, 0.03, -0.45);
@@ -523,16 +519,31 @@
 
         function spawnTarget() {
             const target = new THREE.Group();
-            const head = new THREE.Mesh(new THREE.SphereGeometry(0.4, 16, 16), new THREE.MeshStandardMaterial({ color: 0xef4444 }));
+            
+            // Враг (Террорист / Спецназ)
+            const head = new THREE.Mesh(new THREE.SphereGeometry(0.4, 16, 16), new THREE.MeshStandardMaterial({ color: 0xd90429 }));
             head.position.y = 1.6;
             head.name = "head";
-            
-            const body = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.3, 1.2), new THREE.MeshStandardMaterial({ color: 0x991b1b }));
+
+            const body = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.35, 1.2), new THREE.MeshStandardMaterial({ color: 0x2b2d42 }));
             body.position.y = 0.8;
 
             target.add(head, body);
-            target.position.x = (Math.random() - 0.5) * 60;
-            target.position.z = -10 - Math.random() * 25;
+
+            // Спавн в игровых зонах
+            const spawnPoints = [
+                { x: 38, z: -48 }, // A Plant
+                { x: -42, z: 48 }, // B Plant
+                { x: 0, z: -25 },   // Mid
+                { x: 15, z: 20 },   // B Long
+                { x: -25, z: -15 }, // A Short
+                { x: -35, z: 15 },  // Dark
+                { x: 30, z: -10 }   // CT Spawn
+            ];
+
+            const pt = spawnPoints[Math.floor(Math.random() * spawnPoints.length)];
+            target.position.set(pt.x + (Math.random() - 0.5) * 6, 0, pt.z + (Math.random() - 0.5) * 6);
+            
             scene.add(target);
             targets.push(target);
         }
@@ -555,20 +566,16 @@
                 targets = targets.filter(t => t !== hitTarget);
                 score++;
                 scoreEl.innerText = score;
-                setTimeout(spawnTarget, 1000);
+                setTimeout(spawnTarget, 800);
             }
         }
 
-        // --- Перевод 3D координат мира в 2D координаты экрана ---
         function toScreenPosition(obj, camera) {
             const vector = new THREE.Vector3();
             obj.getWorldPosition(vector);
-
             vector.project(camera);
 
-            if (vector.z > 1) {
-                return { x: -1000, y: -1000, visible: false };
-            }
+            if (vector.z > 1) return { x: -1000, y: -1000, visible: false };
 
             const widthHalf = window.innerWidth / 2;
             const heightHalf = window.innerHeight / 2;
@@ -580,17 +587,14 @@
             };
         }
 
-        // --- Логика AIMBOT и ESP ---
         function processModFeatures() {
             espCtx.clearRect(0, 0, espCanvas.width, espCanvas.height);
-
             const screenCenter = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
 
-            // 1. Отрисовка FOV круга для AimBot
             if (modSettings.aim) {
                 espCtx.beginPath();
                 espCtx.arc(screenCenter.x, screenCenter.y, modSettings.aimFov, 0, Math.PI * 2);
-                espCtx.strokeStyle = 'rgba(74, 222, 128, 0.6)';
+                espCtx.strokeStyle = 'rgba(157, 78, 221, 0.7)';
                 espCtx.lineWidth = 2;
                 espCtx.stroke();
             }
@@ -602,67 +606,87 @@
                 const head = target.getObjectByName("head");
                 if (!head) return;
 
-                const headScreenPos = toScreenPosition(head, camera);
-                const baseScreenPos = toScreenPosition(target, camera);
+                const headPos = toScreenPosition(head, camera);
+                const basePos = toScreenPosition(target, camera);
 
-                if (!headScreenPos.visible) return;
+                if (!headPos.visible) return;
 
-                const boxHeight = Math.abs(baseScreenPos.y - headScreenPos.y) * 1.6;
+                const boxHeight = Math.abs(basePos.y - headPos.y) * 1.6;
                 const boxWidth = boxHeight * 0.55;
 
-                // 2. Отрисовка ESP
                 if (modSettings.esp) {
-                    espCtx.strokeStyle = '#ef4444';
+                    espCtx.strokeStyle = '#e63946';
                     espCtx.lineWidth = 2;
+                    espCtx.strokeRect(headPos.x - boxWidth / 2, headPos.y - boxHeight * 0.15, boxWidth, boxHeight);
 
-                    // Квадрат вокруг игрока сквозь стены
-                    espCtx.strokeRect(
-                        headScreenPos.x - boxWidth / 2,
-                        headScreenPos.y - boxHeight * 0.15,
-                        boxWidth,
-                        boxHeight
-                    );
-
-                    // Линия от верхнего края экрана (Snapline / Tracer)
                     espCtx.beginPath();
                     espCtx.moveTo(screenCenter.x, 0);
-                    espCtx.lineTo(headScreenPos.x, headScreenPos.y - boxHeight * 0.15);
-                    espCtx.strokeStyle = 'rgba(239, 68, 68, 0.4)';
+                    espCtx.lineTo(headPos.x, headPos.y - boxHeight * 0.15);
+                    espCtx.strokeStyle = 'rgba(230, 57, 70, 0.4)';
                     espCtx.stroke();
                 }
 
-                // 3. Поиск ближайшей цели в пределах FOV круга для AimBot
                 if (modSettings.aim) {
-                    const distToCrosshair = Math.hypot(
-                        headScreenPos.x - screenCenter.x,
-                        headScreenPos.y - screenCenter.y
-                    );
-
-                    if (distToCrosshair <= modSettings.aimFov && distToCrosshair < closestDist) {
-                        closestDist = distToCrosshair;
+                    const dist = Math.hypot(headPos.x - screenCenter.x, headPos.y - screenCenter.y);
+                    if (dist <= modSettings.aimFov && dist < closestDist) {
+                        closestDist = dist;
                         bestTarget = head;
                     }
                 }
             });
 
-            // Автонаведение AimBot на найденную цель
             if (modSettings.aim && bestTarget) {
                 const headWorldPos = new THREE.Vector3();
                 bestTarget.getWorldPosition(headWorldPos);
 
                 const dir = headWorldPos.clone().sub(camera.position).normalize();
-
                 const targetYaw = Math.atan2(-dir.x, -dir.z);
                 const targetPitch = Math.asin(dir.y);
 
-                // Плавная доводка
                 yaw += (targetYaw - yaw) * 0.25;
                 pitch += (targetPitch - pitch) * 0.25;
                 applyRotation();
             }
         }
 
-        // --- Управление ПК ---
+        function setupModMenuUI() {
+            const modBtn = document.getElementById('mod-toggle-btn');
+            const modMenu = document.getElementById('mod-menu');
+            const modContainer = document.getElementById('mod-container');
+
+            ['click', 'mousedown', 'touchstart', 'touchend'].forEach(evt => {
+                modContainer.addEventListener(evt, (e) => e.stopPropagation());
+            });
+
+            modBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                if (modMenu.style.display === 'flex') {
+                    modMenu.style.display = 'none';
+                    if (!isMobileMode) document.body.requestPointerLock();
+                } else {
+                    modMenu.style.display = 'flex';
+                    if (!isMobileMode && document.pointerLockElement) document.exitPointerLock();
+                }
+            });
+
+            document.getElementById('esp-toggle').addEventListener('change', (e) => modSettings.esp = e.target.checked);
+            document.getElementById('aim-toggle').addEventListener('change', (e) => modSettings.aim = e.target.checked);
+            document.getElementById('aim-fov').addEventListener('input', (e) => {
+                modSettings.aimFov = parseInt(e.target.value);
+                document.getElementById('fov-val').innerText = modSettings.aimFov;
+            });
+        }
+
+        function startGame() {
+            isGameActive = true;
+            menuScreen.style.display = 'none';
+            gameHud.style.display = 'block';
+            if (isMobileMode) touchControls.style.display = 'block';
+            camera.position.set(0, 1.7, 45); // Спавн T
+        }
+
         const keys = {};
         function onKeyDown(e) { if(!isMobileMode) keys[e.code] = true; updateKeyboardMove(); }
         function onKeyUp(e) { if(!isMobileMode) keys[e.code] = false; updateKeyboardMove(); }
@@ -685,15 +709,13 @@
             camera.rotation.x = pitch;
         }
 
-        // --- Сенсорное управление ---
         function setupTouchControls() {
             const joystickZone = document.getElementById('joystick-zone');
             const stick = document.getElementById('joystick-stick');
             const fireBtn = document.getElementById('fire-btn');
             const lookZone = document.getElementById('touch-look-zone');
 
-            let joystickTouchId = null;
-            let lookTouchId = null;
+            let joystickTouchId = null, lookTouchId = null;
             let lastLookX = 0, lastLookY = 0;
 
             joystickZone.addEventListener('touchstart', (e) => {
@@ -722,10 +744,8 @@
                 for (let touch of e.changedTouches) {
                     if (touch.identifier === joystickTouchId) {
                         joystickTouchId = null;
-                        stick.style.left = '40px';
-                        stick.style.top = '40px';
-                        moveState.forward = 0;
-                        moveState.right = 0;
+                        stick.style.left = '40px'; stick.style.top = '40px';
+                        moveState.forward = 0; moveState.right = 0;
                     } else if (touch.identifier === lookTouchId) {
                         lookTouchId = null;
                     }
@@ -765,18 +785,13 @@
             });
         }
 
-        // --- Столкновения со стенами ---
         function checkCollision(newPosition) {
-            const playerRadius = 1.0;
-            
+            const playerRadius = 0.9;
             for (let obstacle of obstacles) {
                 const box = new THREE.Box3().setFromObject(obstacle);
                 const closestPoint = new THREE.Vector3();
                 box.clampPoint(newPosition, closestPoint);
-                
-                if (newPosition.distanceTo(closestPoint) < playerRadius) {
-                    return true;
-                }
+                if (newPosition.distanceTo(closestPoint) < playerRadius) return true;
             }
             return false;
         }
@@ -788,18 +803,15 @@
             resizeEspCanvas();
         }
 
-        // --- Игровой цикл ---
         let prevTime = performance.now();
         function animate(time) {
             requestAnimationFrame(animate);
 
             if (isGameActive) {
                 const delta = (time - prevTime) / 1000;
-
                 gunGroup.position.z += (-0.5 - gunGroup.position.z) * 0.1;
 
                 const moveVector = new THREE.Vector3();
-
                 const sinYaw = Math.sin(yaw);
                 const cosYaw = Math.cos(yaw);
 
@@ -807,25 +819,18 @@
                     moveVector.x -= sinYaw * moveState.forward * speed * delta;
                     moveVector.z -= cosYaw * moveState.forward * speed * delta;
                 }
-
                 if (Math.abs(moveState.right) > 0.05) {
                     moveVector.x += cosYaw * moveState.right * speed * delta;
                     moveVector.z -= sinYaw * moveState.right * speed * delta;
                 }
 
-                const nextPositionX = camera.position.clone().add(new THREE.Vector3(moveVector.x, 0, 0));
-                if (!checkCollision(nextPositionX)) {
-                    camera.position.x = nextPositionX.x;
-                }
+                const nextX = camera.position.clone().add(new THREE.Vector3(moveVector.x, 0, 0));
+                if (!checkCollision(nextX)) camera.position.x = nextX.x;
 
-                const nextPositionZ = camera.position.clone().add(new THREE.Vector3(0, 0, moveVector.z));
-                if (!checkCollision(nextPositionZ)) {
-                    camera.position.z = nextPositionZ.z;
-                }
+                const nextZ = camera.position.clone().add(new THREE.Vector3(0, 0, moveVector.z));
+                if (!checkCollision(nextZ)) camera.position.z = nextZ.z;
 
                 camera.position.y = 1.7;
-
-                // Вызов обработки читов (ESP и Aim)
                 processModFeatures();
             }
 
