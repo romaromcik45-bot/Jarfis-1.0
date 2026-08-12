@@ -23,106 +23,6 @@
             transition: 0.3s;
         }
 
-        .login-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            backdrop-filter: blur(10px);
-        }
-
-        .login-box {
-            background: rgba(20, 28, 50, 0.9);
-            padding: 40px;
-            border-radius: 30px;
-            border: 1px solid rgba(79, 195, 247, 0.2);
-            max-width: 400px;
-            width: 90%;
-            text-align: center;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.8);
-        }
-
-        .login-box i {
-            font-size: 3rem;
-            color: #4fc3f7;
-            margin-bottom: 20px;
-        }
-
-        .login-box h2 {
-            color: #e0f2fe;
-            font-weight: 300;
-            margin-bottom: 8px;
-        }
-
-        .login-box p {
-            color: #81d4fa;
-            font-size: 0.85rem;
-            margin-bottom: 25px;
-            opacity: 0.7;
-        }
-
-        .login-box input {
-            width: 100%;
-            padding: 14px 20px;
-            border-radius: 60px;
-            border: 1px solid rgba(79, 195, 247, 0.2);
-            background: rgba(0, 0, 0, 0.3);
-            color: #fff;
-            font-size: 1rem;
-            outline: none;
-            transition: 0.3s;
-            text-align: center;
-            letter-spacing: 2px;
-        }
-
-        .login-box input:focus {
-            border-color: #4fc3f7;
-            box-shadow: 0 0 20px rgba(79, 195, 247, 0.1);
-        }
-
-        .login-box input::placeholder {
-            color: #5b7290;
-            letter-spacing: 1px;
-        }
-
-        .login-box .error {
-            color: #ff6b6b;
-            font-size: 0.85rem;
-            margin-top: 12px;
-            display: none;
-        }
-
-        .login-box button {
-            margin-top: 20px;
-            padding: 14px 40px;
-            border-radius: 60px;
-            border: none;
-            background: linear-gradient(135deg, #1f3a5a, #254b72);
-            color: #fff;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.3s;
-            width: 100%;
-        }
-
-        .login-box button:hover {
-            transform: scale(1.02);
-            box-shadow: 0 0 30px rgba(79, 195, 247, 0.2);
-        }
-
-        .login-box .hint {
-            color: #5b7290;
-            font-size: 0.7rem;
-            margin-top: 15px;
-        }
-
         .jarvis-card {
             max-width: 720px;
             width: 100%;
@@ -133,7 +33,6 @@
             padding: 32px 28px 40px;
             box-shadow: 0 25px 50px -8px rgba(0, 0, 0, 0.8), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
             border: 1px solid rgba(255, 255, 255, 0.03);
-            display: none;
         }
 
         .header {
@@ -353,23 +252,6 @@
             transform: scale(0.96);
         }
 
-        .btn-primary {
-            background: #1f3a5a;
-            border-color: #4fc3f744;
-            color: #e6f3ff;
-        }
-        .btn-primary i {
-            color: #81d4fa;
-        }
-        .btn-primary:hover {
-            background: #254b72;
-            border-color: #4fc3f7aa;
-        }
-        .btn-primary:disabled {
-            opacity: 0.4;
-            pointer-events: none;
-        }
-
         .btn-success {
             background: #1a4a3a;
             border-color: #4fc3f744;
@@ -421,7 +303,6 @@
             .jarvis-card { padding: 24px 16px; }
             .logo h1 { font-size: 1.2rem; }
             .btn { padding: 12px 14px; min-width: 100px; font-size: 0.9rem; }
-            .login-box { padding: 30px 20px; }
         }
 
         .listening-waves {
@@ -456,20 +337,7 @@
 </head>
 <body>
 
-    <!-- ЭКРАН ВХОДА -->
-    <div class="login-overlay" id="loginOverlay">
-        <div class="login-box">
-            <i class="fas fa-shield-alt"></i>
-            <h2>🔐 ДОСТУП К JARVIS</h2>
-            <p>Введите пароль для идентификации</p>
-            <input type="password" id="passwordInput" placeholder="Введите пароль" autofocus />
-            <div class="error" id="loginError">❌ Неверный пароль. Попробуйте снова.</div>
-            <button onclick="checkPassword()">ВОЙТИ</button>
-            <div class="hint">Подсказка: <strong>Stark</strong></div>
-        </div>
-    </div>
-
-    <!-- ОСНОВНОЙ ИНТЕРФЕЙС -->
+    <!-- ОСНОВНОЙ ИНТЕРФЕЙС (БЕЗ ПАРОЛЯ) -->
     <div class="jarvis-card" id="mainApp">
         <div class="header">
             <div class="logo">
@@ -512,9 +380,6 @@
             <button class="btn btn-outline" id="clearButton">
                 <i class="fas fa-eraser"></i> Очистить
             </button>
-            <button class="btn btn-danger" id="logoutButton">
-                <i class="fas fa-sign-out-alt"></i> Выйти
-            </button>
         </div>
 
         <div class="footer-info">
@@ -528,33 +393,6 @@
     <script>
         (function() {
             "use strict";
-
-            // ---------- ПАРОЛЬ ----------
-            const PASSWORD = "Stark";
-
-            window.checkPassword = function() {
-                const input = document.getElementById('passwordInput');
-                const error = document.getElementById('loginError');
-                const password = input.value.trim();
-
-                if (password === PASSWORD) {
-                    document.getElementById('loginOverlay').style.display = 'none';
-                    document.getElementById('mainApp').style.display = 'block';
-                    initJarvis();
-                } else {
-                    error.style.display = 'block';
-                    input.value = '';
-                    input.focus();
-                    input.style.borderColor = '#ff6b6b';
-                    setTimeout(() => {
-                        input.style.borderColor = 'rgba(79,195,247,0.2)';
-                    }, 2000);
-                }
-            };
-
-            document.getElementById('passwordInput').addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') window.checkPassword();
-            });
 
             // ---------- ОСНОВНАЯ ЛОГИКА ----------
             let isListening = false;
@@ -571,7 +409,6 @@
             const micLabel = document.getElementById('micLabel');
             const searchButton = document.getElementById('searchButton');
             const clearButton = document.getElementById('clearButton');
-            const logoutButton = document.getElementById('logoutButton');
             const statusText = document.getElementById('statusText');
             const avatarIcon = document.getElementById('avatarIcon');
             const listeningWaves = document.getElementById('listeningWaves');
@@ -733,10 +570,7 @@
                     const result = await realSearch(text);
 
                     if (result.found) {
-                        const answer = `🔍 Вот что я нашёл:
-📌 ${result.title}
-💡 ${result.answer}
-🔗 Источник: ${result.source}`;
+                        const answer = `🔍 Вот что я нашёл:\n📌 ${result.title}\n💡 ${result.answer}\n🔗 Источник: ${result.source}`;
                         processing = false;
                         return answer;
                     } else {
@@ -868,11 +702,8 @@
             }
 
             // ---------- ИНИЦИАЛИЗАЦИЯ JARVIS ----------
-            let recognitionInstance = null;
-
-            window.initJarvis = function() {
-                recognitionInstance = initSpeech();
-                recognition = recognitionInstance;
+            function initJarvis() {
+                recognition = initSpeech();
 
                 if (recognition) {
                     setTimeout(() => {
@@ -902,18 +733,6 @@
                     addMessage('jarvis', '🧹 История очищена. Я продолжаю развиваться!', false);
                 });
 
-                // ВЫХОД
-                logoutButton.addEventListener('click', function() {
-                    if (confirm('Вы уверены, что хотите выйти?')) {
-                        if (isSpeaking) speechSynthesis.cancel();
-                        if (recognition) recognition.stop();
-                        document.getElementById('mainApp').style.display = 'none';
-                        document.getElementById('loginOverlay').style.display = 'flex';
-                        document.getElementById('passwordInput').value = '';
-                        document.getElementById('passwordInput').focus();
-                    }
-                });
-
                 // КЛИК ПО АВАТАРУ
                 document.querySelector('.avatar')?.addEventListener('click', function() {
                     addMessage('jarvis', '👋 Я здесь! Чем могу помочь?', false);
@@ -926,7 +745,12 @@
                 }
 
                 addMessage('jarvis', '🚀 JARVIS 3.0 полностью загружен! Я всегда слушаю и готов помочь. Просто говорите.', false);
-            };
+            }
 
-            // --- ВХОД ПО ENTER ---
-            document.addEventListener('keydown',
+            // ЗАПУСК
+            initJarvis();
+
+        })();
+    </script>
+</body>
+</html>
