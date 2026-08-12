@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Standoff 2 - Sandstone Remastered Pro MAX</title>
+    <title>Standoff 2 - Sandstone Ultra Graphics Engine</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         * {
@@ -38,9 +38,10 @@
             padding: 14px 28px; font-size: 1rem; font-weight: bold;
             color: #170d08; background: #f4a261; border: none; border-radius: 8px;
             cursor: pointer; box-shadow: 0 4px 12px rgba(244, 162, 97, 0.3); width: 260px;
+            transition: transform 0.1s ease;
         }
+        .btn:active { transform: scale(0.98); }
         .btn-sec { background: #e9c46a; }
-        .btn-cfg { background: #2a9d8f; color: #fff; }
 
         /* --- HUD & UI --- */
         #game-hud {
@@ -63,6 +64,7 @@
             position: absolute; top: 15px; background: rgba(15, 10, 8, 0.85);
             padding: 8px 16px; border-radius: 6px; font-size: 1.1rem; font-weight: bold;
             border: 1px solid rgba(244, 162, 97, 0.4); pointer-events: auto;
+            backdrop-filter: blur(5px);
         }
         #health-hud { left: 15px; color: #2a9d8f; }
         #score-hud { left: 140px; color: #f4a261; }
@@ -98,7 +100,7 @@
             pointer-events: none; z-index: 5;
         }
 
-        /* --- ПЕРЕТАСКИВАЕМОЕ МОД-МЕНЮ --- */
+        /* --- МОД-МЕНЮ --- */
         #mod-container {
             position: absolute; top: 70px; left: 15px; z-index: 900; pointer-events: auto;
             width: 280px;
@@ -143,7 +145,7 @@
         #joystick-zone {
             bottom: 40px; left: 40px; width: 130px; height: 130px;
             background: rgba(255, 255, 255, 0.15); border: 2px solid rgba(255, 255, 255, 0.4);
-            border-radius: 50%;
+            border-radius: 50%; backdrop-filter: blur(4px);
         }
         #joystick-stick {
             position: absolute; top: 40px; left: 40px; width: 50px; height: 50px;
@@ -154,7 +156,7 @@
             border-radius: 50%; display: flex;
             justify-content: center; align-items: center; font-weight: bold;
             color: #fff; border: 2px solid rgba(255,255,255,0.8);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5); backdrop-filter: blur(4px);
         }
         #fire-btn {
             bottom: 50px; right: 40px; width: 85px; height: 85px;
@@ -185,8 +187,8 @@
 
     <div id="menu-screen">
         <div class="header">
-            <h1>SANDSTONE ULTRA PRO</h1>
-            <p>Noclip Fly, Super Jump, FOV Circle & Смена Оружия</p>
+            <h1>SANDSTONE ULTRA HD</h1>
+            <p>Продвинутая графика & Точный макет Standoff 2</p>
         </div>
         <button class="btn" id="start-pc">Играть на ПК (Мышь)</button>
         <button class="btn btn-sec" id="start-mobile">Играть на Телефоне (Сенсор)</button>
@@ -206,7 +208,7 @@
         </div>
     </div>
 
-    <!-- ПЕРЕТАСКИВАЕМОЕ МОД МЕНЮ -->
+    <!-- МОД МЕНЮ -->
     <div id="mod-container">
         <div id="mod-header">
             <span>🟣 MOD MENU</span>
@@ -251,28 +253,22 @@
         let score = 0;
         let isGameActive = false, isMobileMode = false, isHudEditing = false;
 
-        // Движение и физика
         const moveState = { forward: 0, right: 0 };
         let baseSpeed = 10.0, speedMultiplier = 1.0;
         let pitch = 0, yaw = 0, sensMultiplier = 1.0;
 
-        // Физика Прыжка & Noclip
         let verticalVelocity = 0, isGrounded = true;
         let isCrouching = false;
         let standHeight = 1.7, crouchHeight = 1.0;
         let currentCamHeight = 1.7;
-        let walkTimer = 0;
 
-        // Оружие и Модели (Задел под Ножи)
-        let currentWeapon = 'm4a1'; // 'm4a1' или 'knife'
+        let currentWeapon = 'm4a1';
         let handsGunGroup, knifeGroup, muzzleFlash, recoilOffset = 0;
         let handsBasePos = new THREE.Vector3(0.18, -0.22, -0.38);
         let isFiring = false, lastShotTime = 0, baseFireInterval = 130;
 
-        // Звуки
         let audioCtx, masterVolume = 0.8;
 
-        // Моды
         const modSettings = {
             aim: false, drawFov: true, fovRadius: 120,
             esp: true, hp: true, tracers: false,
@@ -282,14 +278,17 @@
 
         function init() {
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x87ceeb);
-            scene.fog = new THREE.FogExp2(0xd2a679, 0.005);
+            scene.background = new THREE.Color(0x91c0e6);
+            scene.fog = new THREE.FogExp2(0xe0c4a8, 0.0035);
 
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
             scene.add(camera);
 
             renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
             renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.15;
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             document.body.appendChild(renderer.domElement);
@@ -298,28 +297,32 @@
             espCtx = espCanvas.getContext('2d');
             resizeEspCanvas();
 
-            // Свет
-            const ambientLight = new THREE.AmbientLight(0xffebd7, 0.85);
-            scene.add(ambientLight);
+            // Тёплый солнечный свет + отражение неба
+            const hemiLight = new THREE.HemisphereLight(0xfff5ea, 0x8d6e63, 0.65);
+            scene.add(hemiLight);
 
-            const sunLight = new THREE.DirectionalLight(0xffdfb8, 1.3);
-            sunLight.position.set(50, 80, 40);
+            const sunLight = new THREE.DirectionalLight(0xfff1e0, 1.6);
+            sunLight.position.set(60, 90, 45);
             sunLight.castShadow = true;
             sunLight.shadow.mapSize.width = 2048;
             sunLight.shadow.mapSize.height = 2048;
-            sunLight.shadow.camera.left = -90; sunLight.shadow.camera.right = 90;
-            sunLight.shadow.camera.top = 90; sunLight.shadow.camera.bottom = -90;
+            sunLight.shadow.camera.near = 0.5;
+            sunLight.shadow.camera.far = 300;
+            sunLight.shadow.camera.left = -120;
+            sunLight.shadow.camera.right = 120;
+            sunLight.shadow.camera.top = 120;
+            sunLight.shadow.camera.bottom = -120;
+            sunLight.shadow.bias = -0.0002;
             scene.add(sunLight);
 
             createSandstoneMap();
             createM4A1WithHands();
             createKnife();
 
-            for (let i = 0; i < 8; i++) spawnTarget();
+            for (let i = 0; i < 10; i++) spawnTarget();
 
             window.addEventListener('resize', onWindowResize);
 
-            // Кнопки Главного Меню
             document.getElementById('start-pc').addEventListener('click', () => {
                 isMobileMode = false; initAudio(); startGame(); document.body.requestPointerLock();
             });
@@ -327,7 +330,6 @@
                 isMobileMode = true; initAudio(); startGame();
             });
 
-            // ПК Слушатели
             document.addEventListener('keydown', onKeyDown);
             document.addEventListener('keyup', onKeyUp);
             document.addEventListener('mousemove', onMouseMove);
@@ -351,63 +353,99 @@
             animate(0);
         }
 
-        // --- SANDSTONE MAP (Улучшенный рельеф и арки) ---
+        // --- УЛЬТРА-ГРАФИЧЕСКИЕ МАТЕРИАЛЫ И КАРТА SANDSTONE ---
         function createSandstoneMap() {
             obstacles = []; spawnZones = [];
 
-            const sandMat = new THREE.MeshStandardMaterial({ color: 0xd2a679, roughness: 0.85 });
-            const wallMat = new THREE.MeshStandardMaterial({ color: 0xc29363, roughness: 0.9 });
-            const crateMat = new THREE.MeshStandardMaterial({ color: 0x8c5a3c, roughness: 0.6 });
+            // Прокачанные PBR-материалы с шероховатостью и деталями
+            const sandMat = new THREE.MeshStandardMaterial({ color: 0xdca876, roughness: 0.95, metalness: 0.05 });
+            const wallMat = new THREE.MeshStandardMaterial({ color: 0xcb9868, roughness: 0.85, metalness: 0.1 });
+            const wallDarkMat = new THREE.MeshStandardMaterial({ color: 0xaa784a, roughness: 0.8, metalness: 0.1 });
+            const crateMat = new THREE.MeshStandardMaterial({ color: 0x734a28, roughness: 0.5, metalness: 0.2 });
+            const plantAMat = new THREE.MeshStandardMaterial({ color: 0x9e2b47, roughness: 0.4, metalness: 0.3 });
+            const plantBMat = new THREE.MeshStandardMaterial({ color: 0x2e6698, roughness: 0.4, metalness: 0.3 });
 
-            // Пол
-            const floor = new THREE.Mesh(new THREE.PlaneGeometry(180, 180), sandMat);
+            const floor = new THREE.Mesh(new THREE.PlaneGeometry(300, 300), sandMat);
             floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
 
-            // Внешние Стены Sandstone
-            createWall(0, 8, -90, 180, 16, 4, wallMat);
-            createWall(0, 8, 90, 180, 16, 4, wallMat);
-            createWall(-90, 8, 0, 4, 16, 180, wallMat);
-            createWall(90, 8, 0, 4, 16, 180, wallMat);
+            function addStructure(x, z, w, d, h, mat = wallMat) {
+                const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+                mesh.position.set(x, h / 2, z);
+                mesh.castShadow = true; mesh.receiveShadow = true;
+                scene.add(mesh);
+                obstacles.push(mesh);
+                return mesh;
+            }
 
-            // Здания и Пленты
-            createWall(-25, 7, -20, 4, 14, 60, wallMat);
-            createWall(25, 7, 10, 4, 14, 50, wallMat);
+            // Внешний периметр
+            addStructure(0, -110, 220, 4, 16);
+            addStructure(0, 110, 220, 4, 16);
+            addStructure(-110, 0, 4, 220, 16);
+            addStructure(110, 0, 4, 220, 16);
 
-            // Знаменитая Арка Sandstone
-            const archRoof = new THREE.Mesh(new THREE.BoxGeometry(26, 4, 8), wallMat);
-            archRoof.position.set(0, 10, -5); archRoof.castShadow = true; scene.add(archRoof); obstacles.push(archRoof);
+            // Спавны (Т и КТ)
+            addStructure(-95, 0, 20, 30, 12, wallDarkMat); 
+            spawnZones.push({ x: -85, z: 0, radius: 8 });
 
-            // Подсадки и Ящики
-            spawnCrate(35, 1.5, -35, 3, 3, 3);
-            spawnCrate(35, 4.5, -35, 2.5, 2.5, 2.5);
-            spawnCrate(-35, 1.5, 45, 3, 3, 3);
-            spawnCrate(-15, 2.0, 10, 4, 4, 4);
+            addStructure(75, 0, 20, 40, 12, wallDarkMat);
+            spawnZones.push({ x: 60, z: 0, radius: 8 });
 
-            spawnZones = [
-                { x: 0, z: 70, radius: 6 }, { x: 0, z: -70, radius: 6 },
-                { x: -40, z: -20, radius: 5 }, { x: 40, z: 20, radius: 5 }
-            ];
+            // Мид & Легендарная Арка
+            addStructure(-30, -15, 25, 30, 14);
+            addStructure(-20, 25, 20, 25, 14);
+            addStructure(20, -10, 25, 45, 14);
+
+            const archRoof = new THREE.Mesh(new THREE.BoxGeometry(16, 4, 10), wallMat);
+            archRoof.position.set(-10, 10, 5); archRoof.castShadow = true; scene.add(archRoof); obstacles.push(archRoof);
+
+            addStructure(15, 35, 30, 10, 10);
+
+            // Плент A, Апартаменты, Двор
+            const plantAFloor = new THREE.Mesh(new THREE.BoxGeometry(30, 0.2, 30), plantAMat);
+            plantAFloor.position.set(50, 0.1, -65); plantAFloor.receiveShadow = true; scene.add(plantAFloor);
+            addStructure(50, -82, 35, 4, 12);
+            addStructure(67, -65, 4, 30, 12);
+
+            addStructure(48, -60, 4, 4, 4, crateMat);
+            addStructure(52, -60, 4, 4, 4, crateMat);
+            addStructure(50, -56, 3, 3, 3, crateMat);
+
+            addStructure(20, -80, 30, 15, 10, wallDarkMat);
+            addStructure(-10, -70, 25, 20, 12);
+            addStructure(65, -35, 10, 30, 10);
+
+            // Плент B, Длина, Рынок
+            const plantBFloor = new THREE.Mesh(new THREE.BoxGeometry(28, 0.2, 28), plantBMat);
+            plantBFloor.position.set(35, 0.1, 70); plantBFloor.receiveShadow = true; scene.add(plantBFloor);
+            addStructure(35, 86, 32, 4, 12);
+            addStructure(51, 70, 4, 28, 12);
+
+            addStructure(32, 66, 5, 5, 4, crateMat);
+            addStructure(38, 72, 4, 4, 4, crateMat);
+
+            addStructure(-25, 65, 30, 12, 10);
+            addStructure(5, 82, 40, 6, 12);
+
+            addStructure(-65, 35, 25, 35, 12, wallDarkMat);
+            addStructure(-50, 65, 20, 20, 10);
+            addStructure(-70, -35, 20, 30, 12);
+
+            addStructure(-50, 10, 3, 3, 3, crateMat);
+            addStructure(-10, -30, 4, 4, 4, crateMat);
+            addStructure(0, 40, 4, 4, 4, crateMat);
+            addStructure(40, -15, 3, 6, 3, crateMat);
+
+            spawnZones.push({ x: 50, z: -65, radius: 5 });
+            spawnZones.push({ x: 35, z: 70, radius: 5 });
+            spawnZones.push({ x: 0, z: 0, radius: 6 });
+            spawnZones.push({ x: -60, z: 35, radius: 4 });
+            spawnZones.push({ x: 0, z: 75, radius: 5 });
         }
 
-        function createWall(x, y, z, w, h, d, mat) {
-            const wall = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
-            wall.position.set(x, y, z); wall.castShadow = true; wall.receiveShadow = true;
-            scene.add(wall); obstacles.push(wall);
-        }
-
-        function spawnCrate(x, y, z, w, h, d) {
-            const crateMat = new THREE.MeshStandardMaterial({ color: 0x8c5a3c, roughness: 0.6 });
-            const crate = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), crateMat);
-            crate.position.set(x, y, z); crate.castShadow = true; crate.receiveShadow = true;
-            scene.add(crate); obstacles.push(crate);
-        }
-
-        // --- МОДЕЛЬ M4A1 ---
         function createM4A1WithHands() {
             handsGunGroup = new THREE.Group();
-            const skinMat = new THREE.MeshStandardMaterial({ color: 0xdca882, roughness: 0.6 });
-            const gloveMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.5 });
-            const gunDarkMat = new THREE.MeshStandardMaterial({ color: 0x1a1d20, metalness: 0.85, roughness: 0.25 });
+            const gunDarkMat = new THREE.MeshStandardMaterial({ color: 0x141619, metalness: 0.9, roughness: 0.2 });
+            const handMat = new THREE.MeshStandardMaterial({ color: 0x2b2d30, roughness: 0.7 });
 
             const m4a1 = new THREE.Group();
             const receiver = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.09, 0.32), gunDarkMat);
@@ -416,9 +454,15 @@
             suppressor.rotation.x = Math.PI / 2; suppressor.position.set(0, 0.01, -0.72);
             const mag = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.22, 0.08), gunDarkMat); mag.position.set(0, -0.12, -0.06);
 
-            m4a1.add(receiver, handguard, suppressor, mag);
+            // Руки
+            const handR = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.04, 0.35, 8), handMat);
+            handR.rotation.x = Math.PI / 3; handR.position.set(0.12, -0.12, -0.1);
+            const handL = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.04, 0.35, 8), handMat);
+            handL.rotation.x = Math.PI / 4; handL.rotation.z = -Math.PI / 6; handL.position.set(-0.1, -0.1, -0.25);
 
-            muzzleFlash = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), new THREE.MeshBasicMaterial({ color: 0xffdb4d, transparent: true, opacity: 0 }));
+            m4a1.add(receiver, handguard, suppressor, mag, handR, handL);
+
+            muzzleFlash = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 8), new THREE.MeshBasicMaterial({ color: 0xffcc44, transparent: true, opacity: 0 }));
             muzzleFlash.position.set(0, 0.01, -0.88); m4a1.add(muzzleFlash);
 
             handsGunGroup.add(m4a1);
@@ -426,11 +470,10 @@
             camera.add(handsGunGroup);
         }
 
-        // --- МОДЕЛЬ НОЖА (Karambit Style) ---
         function createKnife() {
             knifeGroup = new THREE.Group();
-            const handleMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.4 });
-            const bladeMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.95, roughness: 0.1 });
+            const handleMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.3 });
+            const bladeMat = new THREE.MeshStandardMaterial({ color: 0xdddddd, metalness: 0.98, roughness: 0.05 });
 
             const handle = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.04, 0.18), handleMat);
             const blade = new THREE.Mesh(new THREE.ConeGeometry(0.03, 0.22, 4), bladeMat);
@@ -474,13 +517,13 @@
 
         function spawnTarget() {
             const human = new THREE.Group();
-            const skinMat = new THREE.MeshStandardMaterial({ color: 0xd2a379 });
-            const suitMat = new THREE.MeshStandardMaterial({ color: 0x2b3a4a, roughness: 0.7 });
+            const skinMat = new THREE.MeshStandardMaterial({ color: 0xd2a379, roughness: 0.6 });
+            const suitMat = new THREE.MeshStandardMaterial({ color: 0x22303c, roughness: 0.5 });
 
-            const head = new THREE.Mesh(new THREE.SphereGeometry(0.24, 12, 12), skinMat); head.position.y = 1.62; head.name = "head";
-            const torso = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.65, 0.28), suitMat); torso.position.y = 1.15; torso.name = "torso";
-            const legL = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.09, 0.8), suitMat); legL.position.set(-0.14, 0.4, 0);
-            const legR = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.09, 0.8), suitMat); legR.position.set(0.14, 0.4, 0);
+            const head = new THREE.Mesh(new THREE.SphereGeometry(0.24, 12, 12), skinMat); head.position.y = 1.62; head.name = "head"; head.castShadow = true;
+            const torso = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.65, 0.28), suitMat); torso.position.y = 1.15; torso.name = "torso"; torso.castShadow = true;
+            const legL = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.09, 0.8), suitMat); legL.position.set(-0.14, 0.4, 0); legL.castShadow = true;
+            const legR = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.09, 0.8), suitMat); legR.position.set(0.14, 0.4, 0); legR.castShadow = true;
 
             human.add(head, torso, legL, legR);
 
@@ -532,7 +575,6 @@
             setTimeout(spawnTarget, 500);
         }
 
-        /* --- 1. ПЕРЕТАСКИВАЕМОЕ МОД-МЕНЮ --- */
         function setupModMenuDrag() {
             const container = document.getElementById('mod-container');
             const header = document.getElementById('mod-header');
@@ -571,7 +613,6 @@
             });
         }
 
-        /* --- 2. КАСТОМИЗАЦИЯ HUD (DRAG & DROP) --- */
         function setupHudEditor() {
             const toggleBtn = document.getElementById('toggle-hud-edit');
             const banner = document.getElementById('hud-edit-banner');
@@ -632,12 +673,10 @@
             });
         }
 
-        /* --- 3. ИСПРАВЛЕННЫЙ ПРЫЖОК И NOCLIP (FLY HACK) --- */
         function handleJump() {
             if (modSettings.fly) {
-                camera.position.y += 1.8; // Взлёт на Noclip
+                camera.position.y += 1.8;
             } else if (isGrounded) {
-                // ИСПРАВЛЕН НОЧНОЙ/SUPER JUMP
                 verticalVelocity = modSettings.jump ? 24.0 : 12.0;
                 isGrounded = false;
             }
@@ -662,7 +701,8 @@
 
             document.getElementById('night-toggle').addEventListener('change', (e) => {
                 modSettings.night = e.target.checked;
-                scene.background = new THREE.Color(modSettings.night ? 0x060612 : 0x87ceeb);
+                scene.background = new THREE.Color(modSettings.night ? 0x050811 : 0x91c0e6);
+                scene.fog.color = new THREE.Color(modSettings.night ? 0x0a0f1d : 0xe0c4a8);
             });
 
             document.getElementById('tp-btn').addEventListener('click', () => {
@@ -678,7 +718,7 @@
             document.getElementById('menu-screen').style.display = 'none';
             document.getElementById('game-hud').style.display = 'block';
             if (isMobileMode) document.getElementById('touch-controls').style.display = 'block';
-            camera.position.set(0, standHeight, 60);
+            camera.position.set(-85, standHeight, 0);
         }
 
         const keys = {};
@@ -687,7 +727,7 @@
                 keys[e.code] = true;
                 if (e.code === 'Space') handleJump();
                 if (e.code === 'KeyC' || e.code === 'ShiftLeft') {
-                    if (modSettings.fly) camera.position.y -= 1.8; // Спуск на Noclip
+                    if (modSettings.fly) camera.position.y -= 1.8;
                     else isCrouching = true;
                 }
                 if (e.code === 'KeyE') switchWeapon();
@@ -804,7 +844,7 @@
         }
 
         function checkCollision(newPosition, radius = 0.8) {
-            if (modSettings.fly) return false; // NOCLIP ИГНОРИРУЕТ СТЕНЫ
+            if (modSettings.fly) return false;
             for (let obstacle of obstacles) {
                 const box = new THREE.Box3().setFromObject(obstacle);
                 const closestPoint = new THREE.Vector3();
@@ -852,12 +892,10 @@
             return { x: (vector.x * widthHalf) + widthHalf, y: -(vector.y * heightHalf) + heightHalf, visible: true };
         }
 
-        // --- ОБРАБОТКА ESP & FOV CIRCLE ---
         function processModFeatures() {
             espCtx.clearRect(0, 0, espCanvas.width, espCanvas.height);
             const screenCenter = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
 
-            // КРУГ FOV ДЛЯ AIMBOT
             if (modSettings.drawFov) {
                 espCtx.strokeStyle = 'rgba(230, 57, 70, 0.8)';
                 espCtx.lineWidth = 2;
@@ -895,7 +933,6 @@
                     espCtx.lineTo(headPos.x, headPos.y); espCtx.stroke();
                 }
 
-                // Аимбот захватывает только внутри FOV-круга
                 const distToCrosshair = Math.hypot(headPos.x - screenCenter.x, headPos.y - screenCenter.y);
                 if (distToCrosshair <= modSettings.fovRadius && distToCrosshair < closestDist) {
                     closestDist = distToCrosshair; bestTarget = head;
@@ -941,7 +978,6 @@
                 const nextZ = camera.position.clone().add(new THREE.Vector3(0, 0, moveVector.z));
                 if (!checkCollision(nextZ)) camera.position.z = nextZ.z;
 
-                // ФИЗИКА ГРАВИТАЦИИ И NOCLIP
                 if (!modSettings.fly) {
                     verticalVelocity -= 26 * delta;
                     camera.position.y += verticalVelocity * delta;
