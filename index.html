@@ -3,52 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Standoff Tactical Pro</title>
+    <title>Standoff Elite Mobile</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: none; }
-        body { background: #090a0f; color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; height: 100vh; width: 100vw; }
+        /* Базовые настройки */
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: none; font-family: 'Segoe UI', sans-serif; }
+        body { background: #0b0c10; overflow: hidden; height: 100vh; width: 100vw; color: white; }
         
-        #mainMenu { position: absolute; top:0; left:0; width:100%; height:100%; background: radial-gradient(circle at center, #1a1c22 0%, #090a0f 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; gap: 12px; }
-        .logo-text { font-size: 28px; font-weight: 900; color: #f7931e; text-shadow: 0 0 20px rgba(247,147,30,0.5); letter-spacing: 2px; margin-bottom: 20px;}
-        .menu-btn { width: 220px; padding: 14px; background: #1f2229; border: 1px solid #2a2d35; border-radius: 12px; font-weight: bold; font-size: 16px; color: white; text-align: center; cursor: pointer; transition: 0.1s; text-transform: uppercase; }
+        /* ГЛАВНОЕ МЕНЮ */
+        #mainMenu { position: absolute; top:0; left:0; width:100%; height:100%; background: radial-gradient(circle at center, #1a1c22 0%, #0b0c10 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; gap: 12px; }
+        .logo-text { font-size: 32px; font-weight: 900; color: #f7931e; text-shadow: 0 0 20px rgba(247,147,30,0.4); margin-bottom: 20px;}
+        .menu-btn { width: 220px; padding: 14px; background: #1f2229; border: 1px solid #333; border-radius: 14px; font-weight: bold; font-size: 16px; text-align: center; cursor: pointer; transition: 0.1s; text-transform: uppercase; }
         .menu-btn:active { transform: scale(0.95); }
         .menu-btn.play { background: #e74c3c; border-color: #ff6b6b; }
         .menu-btn.shop { background: #2980b9; border-color: #3498db; }
         .menu-btn.inv { background: #8e44ad; border-color: #9b59b6; }
-        .menu-btn.cheat { background: #c0392b; border-color: #e74c3c; margin-top: 20px; width: 180px; }
 
-        #loadScreen { position: absolute; top:0; left:0; width:100%; height:100%; background: #090a0f; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 900; }
+        /* ЗАГРУЗКА */
+        #loadScreen { position: absolute; top:0; left:0; width:100%; height:100%; background: #0b0c10; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 900; }
         .load-bar { width: 200px; height: 6px; background: #333; border-radius: 20px; margin-top: 20px; overflow: hidden; }
         .load-progress { width: 0%; height: 100%; background: #f7931e; transition: width 0.5s; }
 
+        /* ИГРОВОЙ ИНТЕРФЕЙС */
         #gameUI { position: absolute; top:0; left:0; width:100%; height:100%; display: none; }
         #gameCanvas { display: block; width: 100%; height: 100%; background: #c9ae84; touch-action: none; }
         
-        .hud-top { position: absolute; top: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: center; z-index: 10; pointer-events: none; gap: 8px; }
-        .hud-box { background: rgba(0,0,0,0.8); padding: 5px 10px; border-radius: 8px; backdrop-filter: blur(2px); pointer-events: auto; border: 1px solid rgba(255,255,255,0.1); display: flex; gap: 8px; align-items: center; font-size: 14px;}
-        .blue-team { color: #3498db; font-weight: bold; } .red-team { color: #e74c3c; font-weight: bold; }
-        .gold-box { color: #f1c40f; font-weight: bold; }
-        .exit-btn { background: rgba(255,255,255,0.1); border: 1px solid #555; padding: 4px 10px; border-radius: 20px; color: white; cursor: pointer; font-size: 12px; pointer-events: auto; }
+        .hud-top { position: absolute; top: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; z-index: 10; pointer-events: none; }
+        .hud-box { background: rgba(0,0,0,0.75); padding: 4px 10px; border-radius: 8px; backdrop-filter: blur(2px); pointer-events: auto; border: 1px solid rgba(255,255,255,0.1); font-size: 14px; display: flex; gap: 10px;}
+        .hud-box .blue { color: #3498db; font-weight: bold; } .hud-box .red { color: #e74c3c; font-weight: bold; }
+        .hud-box .gold { color: #f1c40f; font-weight: bold; }
+        .exit-btn { background: rgba(255,255,255,0.1); border: 1px solid #555; padding: 4px 12px; border-radius: 20px; color: white; cursor: pointer; font-size: 12px; pointer-events: auto; }
 
-        #buyPhaseUI { position: absolute; bottom: 160px; left: 0; width: 100%; display: none; flex-direction: column; align-items: center; z-index: 20; pointer-events: none; }
-        .buy-panel { background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); padding: 15px; border-radius: 15px; border: 2px solid #f1c40f; width: 90%; max-width: 380px; text-align: center; pointer-events: auto; }
+        /* ЗАКУПКА */
+        #buyPhaseUI { position: absolute; bottom: 170px; left: 0; width: 100%; display: none; flex-direction: column; align-items: center; z-index: 20; }
+        .buy-panel { background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); padding: 15px; border-radius: 15px; border: 2px solid #f1c40f; width: 90%; max-width: 380px; text-align: center; }
         .buy-timer { color: #f7931e; font-size: 18px; font-weight: bold; margin-bottom: 10px; }
         .buy-items { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .gun-item { background: #1f2229; padding: 10px; border-radius: 8px; border: 1px solid #333; cursor: pointer; transition: 0.1s; }
+        .gun-item { background: #1f2229; padding: 10px; border-radius: 8px; border: 1px solid #333; cursor: pointer; }
         .gun-item:active { transform: scale(0.95); background: #2c303a; }
-        .gun-item span { display: block; font-size: 12px; font-weight: bold; }
+        .gun-item span { display: block; font-size: 13px; font-weight: bold; }
         .gun-item small { display: block; font-size: 10px; color: #f1c40f; margin-top: 2px; }
 
-        .weapon-slot { position: absolute; bottom: 120px; right: 15px; z-index: 10; display: flex; flex-direction: column; gap: 6px; pointer-events: none; }
-        .slot-btn { pointer-events: auto; width: 48px; height: 40px; background: rgba(0,0,0,0.8); border-radius: 8px; border: 2px solid #444; display: flex; align-items: center; justify-content: center; font-size: 20px; backdrop-filter: blur(4px); transition: 0.1s; cursor: pointer; }
+        /* СЛОТЫ ОРУЖИЯ */
+        .weapon-slot { position: absolute; bottom: 130px; right: 15px; z-index: 10; display: flex; flex-direction: column; gap: 6px; }
+        .slot-btn { width: 48px; height: 40px; background: rgba(0,0,0,0.8); border-radius: 8px; border: 2px solid #444; display: flex; align-items: center; justify-content: center; font-size: 20px; backdrop-filter: blur(4px); cursor: pointer; }
         .slot-btn.active { border-color: #f7931e; background: rgba(247,147,30,0.2); }
 
-        .controls { position: absolute; bottom: 25px; left: 15px; right: 15px; display: flex; justify-content: space-between; z-index: 10; pointer-events: none; align-items: flex-end; }
-        .joystick-area { pointer-events: auto; width: 120px; height: 120px; border-radius: 50%; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.2); position: relative; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
+        /* УПРАВЛЕНИЕ */
+        .controls { position: absolute; bottom: 25px; left: 15px; right: 15px; display: flex; justify-content: space-between; z-index: 10; align-items: flex-end; }
+        .joystick-area { width: 120px; height: 120px; border-radius: 50%; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.2); position: relative; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
         .joystick-knob { width: 50px; height: 50px; border-radius: 50%; background: radial-gradient(circle, #fff, #bbb); position: absolute; left: 35px; top: 35px; box-shadow: 0 4px 10px rgba(0,0,0,0.4); }
-        .fire-btn { pointer-events: auto; width: 80px; height: 80px; border-radius: 50%; background: radial-gradient(circle, #ff4757, #c0392b); border: 4px solid #ff6b81; box-shadow: 0 0 30px rgba(255, 71, 87, 0.5); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        .fire-btn { width: 80px; height: 80px; border-radius: 50%; background: radial-gradient(circle, #ff4757, #c0392b); border: 4px solid #ff6b81; box-shadow: 0 0 30px rgba(255, 71, 87, 0.5); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
         .fire-btn:active { transform: scale(0.85); }
 
+        /* МОД МЕНЮ (ЧИТЫ) */
         #cheatPanel { position: absolute; top: 70px; left: 10px; width: 170px; background: rgba(0, 0, 0, 0.9); padding: 12px; border-radius: 12px; z-index: 500; display: none; cursor: grab; border: 1px solid #8e44ad; backdrop-filter: blur(10px); box-shadow: 0 10px 30px rgba(0,0,0,0.9); }
         .cheat-title { color: #8e44ad; font-weight: bold; font-size: 13px; text-align: center; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px;}
         .cheat-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 13px; }
@@ -59,6 +66,7 @@
         input:checked + .slider:before { transform: translateX(16px); }
         .cheat-btn-gold { background: #f1c40f; border: none; color: black; padding: 6px; border-radius: 6px; font-weight: bold; width: 100%; cursor: pointer; margin-top: 5px; }
 
+        /* МОДАЛЬНЫЕ ОКНА */
         .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(6px); display: none; align-items: center; justify-content: center; z-index: 999; }
         .modal-panel { background: #1a1c22; width: 90%; max-width: 380px; max-height: 80vh; border-radius: 16px; padding: 20px; border: 1px solid #333; display: flex; flex-direction: column; overflow-y: auto; }
         .modal-title { font-size: 20px; font-weight: bold; color: #f7931e; text-align: center; margin-bottom: 12px; }
@@ -79,11 +87,11 @@
 
     <!-- Меню -->
     <div id="mainMenu">
-        <div class="logo-text">⚔️ TACTICAL PRO</div>
+        <div class="logo-text">⚔️ ELITE ARENA</div>
         <div class="menu-btn play" onclick="initGame()">▶ ИГРАТЬ (5v5)</div>
         <div class="menu-btn shop" onclick="openModal('shopModal')">🏪 МАГАЗИН</div>
         <div class="menu-btn inv" onclick="openModal('invModal')">🎒 ИНВЕНТАРЬ</div>
-        <div class="menu-btn cheat" onclick="toggleCheatMenuUI()">⚡ ОТКРЫТЬ ЧИТЫ</div>
+        <div class="menu-btn" style="background:#c0392b; border-color:#e74c3c; width:180px; margin-top:20px;" onclick="toggleCheatMenuUI()">⚡ ОТКРЫТЬ ЧИТЫ</div>
     </div>
 
     <!-- Загрузка -->
@@ -96,10 +104,11 @@
     <div id="gameUI">
         <canvas id="gameCanvas"></canvas>
         <div class="hud-top">
-            <div style="display:flex; gap:8px;">
-                <div class="hud-box hud-score"><span class="blue-team" id="scoreBlue">🟦 0</span><span class="red-team" id="scoreRed">🟥 0</span></div>
-                <div class="hud-box gold-box">🪙 <span id="goldDisplay">800</span></div>
+            <div class="hud-box">
+                <span class="blue">🟦 <span id="scoreBlue">0</span></span>
+                <span class="red">🟥 <span id="scoreRed">0</span></span>
             </div>
+            <div class="hud-box gold">🪙 <span id="goldDisplay">800</span></div>
             <button class="exit-btn" onclick="exitGame()">✖ Меню</button>
         </div>
 
@@ -148,14 +157,14 @@
 
 <script>
 // =============================================
-// БАЗА ДАННЫХ
+// ДАННЫЕ ИГРЫ
 // =============================================
 const WEAPONS = {
-    pistol: { name: 'Pistol', icon: '🔫', damage: 22, fireRate: 250, range: 600, speed: 18, cost: 200, len: 14, w: 5 },
+    pistol: { name: 'Pistol', icon: '🔫', damage: 22, fireRate: 250, range: 600, speed: 20, cost: 200, len: 14, w: 5 },
     shotgun: { name: 'Shotgun', icon: '💥', damage: 40, fireRate: 600, range: 300, speed: 15, cost: 400, len: 20, w: 8 },
-    rifle: { name: 'AK-47', icon: '⚔️', damage: 30, fireRate: 150, range: 800, speed: 22, cost: 600, len: 28, w: 5 },
-    sniper: { name: 'AWP', icon: '🎯', damage: 95, fireRate: 1500, range: 1200, speed: 30, cost: 900, len: 35, w: 5 },
-    knife: { name: 'Knife', icon: '🔪', damage: 100, fireRate: 1000, range: 70, speed: 0, cost: 0, len: 0, w: 0 }
+    rifle: { name: 'AK-47', icon: '⚔️', damage: 30, fireRate: 150, range: 800, speed: 25, cost: 600, len: 28, w: 5 },
+    sniper: { name: 'AWP', icon: '🎯', damage: 95, fireRate: 1500, range: 1200, speed: 32, cost: 900, len: 35, w: 5 },
+    knife: { name: 'Knife', icon: '🔪', damage: 100, fireRate: 800, range: 70, speed: 0, cost: 0, len: 0, w: 0 }
 };
 const SKINS_DB = {
     'AKR Blue Gem': { weapon: 'rifle', rarity: 'Rare', color: '#3498db' },
@@ -170,14 +179,15 @@ const CASE_POOLS = {
 };
 
 // =============================================
-// ПЕРЕМЕННЫЕ ИГРЫ
+// ПЕРЕМЕННЫЕ
 // =============================================
-let player = { x: 500, y: 500, radius: 18, angle: 0, hp: 100, maxHp: 100, gold: 800, kills: 0 };
+let player = { x: 600, y: 600, radius: 18, angle: 0, hp: 100, maxHp: 100, gold: 800, kills: 0 };
 let inventory = [];
 let currentCaseType = 'Empire';
 let activeWeapon = 'primary';
 let weapons = { primary: null, secondary: 'pistol' };
 let skinApplied = false; let skinColor = '#3498db';
+
 let enemies = []; let bullets = [];
 let joystick = { dx: 0, dy: 0 };
 let cheats = { aimbot: false, esp: false };
@@ -185,14 +195,26 @@ let gameRunning = false; let buyPhase = false; let buyTimer = 15; let isSpinning
 let animFrameId = null; let buyIntervalId = null;
 let knifeSlash = { active: false, angle: 0, life: 0 };
 
-// Аудио
+const MAP_SIZE = 1600;
+const walls = [
+    {x:0, y:0, w:MAP_SIZE, h:15}, {x:0, y:0, w:15, h:MAP_SIZE}, {x:0, y:MAP_SIZE-15, w:MAP_SIZE, h:15}, {x:MAP_SIZE-15, y:0, w:15, h:MAP_SIZE},
+    {x:200, y:200, w:200, h:150}, {x:600, y:100, w:150, h:350}, {x:1000, y:250, w:200, h:200},
+    {x:350, y:550, w:350, h:20}, {x:250, y:850, w:300, h:100}, {x:900, y:750, w:200, h:120}
+];
+
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+// =============================================
+// ЗВУКИ (Web Audio)
+// =============================================
 let audioCtx = null;
 function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
 function playShoot() {
     if (!audioCtx) return;
     try {
         let osc = audioCtx.createOscillator(); let g = audioCtx.createGain();
-        osc.type = 'sawtooth'; osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+        osc.type = 'sawtooth'; osc.frequency.setValueAtTime(900, audioCtx.currentTime);
         g.gain.setValueAtTime(0.15, audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
         osc.connect(g); g.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.05);
     } catch(e){}
@@ -201,28 +223,21 @@ function playKnife() {
     if (!audioCtx) return;
     try {
         let osc = audioCtx.createOscillator(); let g = audioCtx.createGain();
-        osc.type = 'sine'; osc.frequency.setValueAtTime(1000, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.2);
-        g.gain.setValueAtTime(0.3, audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
-        osc.connect(g); g.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+        osc.type = 'sine'; osc.frequency.setValueAtTime(1200, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.15);
+        g.gain.setValueAtTime(0.3, audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+        osc.connect(g); g.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.15);
     } catch(e){}
 }
 
-// Карта и Коллизии
-const MAP_SIZE = 1600;
-const walls = [
-    {x:0, y:0, w:MAP_SIZE, h:15}, {x:0, y:0, w:15, h:MAP_SIZE}, {x:0, y:MAP_SIZE-15, w:MAP_SIZE, h:15}, {x:MAP_SIZE-15, y:0, w:15, h:MAP_SIZE},
-    {x:200, y:200, w:200, h:150}, {x:600, y:100, w:150, h:350}, {x:1000, y:250, w:200, h:200},
-    {x:350, y:550, w:350, h:20}, {x:250, y:850, w:300, h:100}, {x:900, y:750, w:200, h:120}
-];
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
+// =============================================
+// СОХРАНЕНИЕ
+// =============================================
+function saveGame() { localStorage.setItem('eliteData', JSON.stringify({ gold: player.gold, inv: inventory })); }
+function loadGame() { let d = JSON.parse(localStorage.getItem('eliteData')); if(d){ player.gold = d.gold; inventory = d.inv; } }
 
 // =============================================
-// ФУНКЦИИ ИНТЕРФЕЙСА
+// МЕНЮ И ЗАГРУЗКА
 // =============================================
-function saveGame() { localStorage.setItem('tacticalData', JSON.stringify({ gold: player.gold, inv: inventory })); }
-function loadGame() { let d = JSON.parse(localStorage.getItem('tacticalData')); if(d){ player.gold = d.gold; inventory = d.inv; } }
-
 function openModal(id) { document.getElementById(id).style.display='flex'; initAudio(); }
 function closeModal(id) { document.getElementById(id).style.display='none'; renderInventory(); }
 
@@ -249,7 +264,7 @@ function exitGame() {
 
 function startMatch() {
     resizeCanvas();
-    player.x = 500; player.y = 500; player.hp = player.maxHp; player.kills = 0;
+    player.x = 600; player.y = 600; player.hp = player.maxHp; player.kills = 0;
     weapons.primary = null; activeWeapon = 'primary'; skinApplied = false; skinColor = '#3498db';
     enemies = []; bullets = []; buyPhase = true; buyTimer = 15;
     document.getElementById('buyPhaseUI').style.display = 'flex';
@@ -270,13 +285,13 @@ function startMatch() {
 
 function updateUI() {
     document.getElementById('goldDisplay').innerText = player.gold;
-    document.getElementById('scoreBlue').innerText = `🟦 ${player.kills}`;
+    document.getElementById('scoreBlue').innerText = player.kills;
     let alive = enemies.filter(e => e.isAlive).length;
-    document.getElementById('scoreRed').innerText = `🟥 ${alive}`;
+    document.getElementById('scoreRed').innerText = alive;
 }
 
 // =============================================
-// ЭКОНОМИКА И ОРУЖИЕ
+// ЭКОНОМИКА
 // =============================================
 function buyWeapon(type) {
     if(!buyPhase) return;
@@ -350,7 +365,6 @@ function renderInventory() {
 function toggleCheatMenuUI() { let p = document.getElementById('cheatPanel'); p.style.display = p.style.display === 'block' ? 'none' : 'block'; }
 function giveGoldCheat() { player.gold += 2000; updateUI(); saveGame(); }
 
-// Перетаскивание читов
 let isDragC = false, cx=0, cy=0;
 document.getElementById('cheatPanel').addEventListener('touchstart', e => {
     isDragC = true; let t=e.touches[0]; let rect=document.getElementById('cheatPanel').getBoundingClientRect();
@@ -365,16 +379,7 @@ document.getElementById('chAim').addEventListener('change', e=>cheats.aimbot=e.t
 document.getElementById('chESP').addEventListener('change', e=>cheats.esp=e.target.checked);
 
 // =============================================
-// ЛОГИКА БОЯ И ДВИЖЕНИЕ
+// ИГРОВОЙ ДВИЖОК
 // =============================================
 function spawnEnemy() {
-    enemies.push({ x: 1100 + Math.random()*200, y: 1100+Math.random()*200, radius: 18, angle:0, hp:100, maxHp:100, speed: 1.8 + Math.random()*0.5, isAlive:true });
-}
-
-function shoot() {
-    if(buyPhase || !gameRunning) return;
-    let now = Date.now();
-    let w = activeWeapon === 'primary' && weapons.primary ? WEAPONS[weapons.primary] : WEAPONS.pistol;
-    if(now - (player.lastShot||0) < w.fireRate) return;
-    player.lastShot = now;
-    let tx = player.x + Math.cos(player.angle)*100
+    enemies.push({ x: 1100 + Math.random()*200, y: 1100+Math.random()*200, radius: 18, angle:0, hp:100, maxHp:100, speed:
