@@ -140,54 +140,55 @@
             top: 60px; left: 15px;
             background: #a855f7;
             color: #fff;
-            border: none;
-            padding: 8px 14px;
-            border-radius: 6px;
+            border: 2px solid #fff;
+            padding: 10px 16px;
+            border-radius: 8px;
             font-weight: bold;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             cursor: pointer;
-            z-index: 15;
+            z-index: 100;
             pointer-events: auto;
-            box-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.8);
         }
 
         #mod-menu {
             position: absolute;
-            top: 105px; left: 15px;
-            width: 230px;
-            background: rgba(20, 20, 28, 0.95);
+            top: 110px; left: 15px;
+            width: 250px;
+            background: rgba(18, 18, 24, 0.95);
             border: 2px solid #a855f7;
-            border-radius: 10px;
-            padding: 15px;
+            border-radius: 12px;
+            padding: 16px;
             display: none;
             flex-direction: column;
-            gap: 12px;
-            z-index: 15;
+            gap: 14px;
+            z-index: 100;
             pointer-events: auto;
-            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.9);
         }
         #mod-menu h3 {
             color: #a855f7;
             font-size: 1.1rem;
             text-align: center;
             border-bottom: 1px solid #333;
-            padding-bottom: 5px;
+            padding-bottom: 6px;
         }
         .mod-option {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
+            cursor: pointer;
         }
         .mod-option input[type="checkbox"] {
-            width: 18px; height: 18px;
+            width: 20px; height: 20px;
             accent-color: #a855f7;
             cursor: pointer;
         }
         .slider-group {
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 6px;
             font-size: 0.85rem;
         }
         .slider-group input[type="range"] {
@@ -283,17 +284,17 @@
         <div id="score-hud" class="hud-panel">УБИТО: <span id="score">0</span></div>
 
         <!-- Мод-меню UI -->
-        <button id="mod-toggle-btn">MOD MENU</button>
+        <button id="mod-toggle-btn">⚙️ MOD MENU</button>
         <div id="mod-menu">
             <h3>DEV MOD MENU</h3>
-            <div class="mod-option">
-                <label for="esp-toggle">Включить ESP</label>
-                <input type="checkbox" id="esp-toggle" checked>
-            </div>
-            <div class="mod-option">
-                <label for="aim-toggle">Включить AimBot</label>
-                <input type="checkbox" id="aim-toggle" checked>
-            </div>
+            <label class="mod-option" for="esp-toggle">
+                <span>Включить ESP</span>
+                <input type="checkbox" id="esp-toggle">
+            </label>
+            <label class="mod-option" for="aim-toggle">
+                <span>Включить AimBot</span>
+                <input type="checkbox" id="aim-toggle">
+            </label>
             <div class="slider-group">
                 <label for="aim-fov">Размер круга Aim (FOV): <span id="fov-val">120</span>px</label>
                 <input type="range" id="aim-fov" min="40" max="300" value="120">
@@ -322,10 +323,10 @@
         // Оружие
         let gunGroup, muzzleFlash;
 
-        // Настройки Мод-Меню
+        // Настройки Мод-Меню (по умолчанию все ВЫКЛЮЧЕНО)
         const modSettings = {
-            esp: true,
-            aim: true,
+            esp: false,
+            aim: false,
             aimFov: 120
         };
 
@@ -382,12 +383,22 @@
             document.addEventListener('keydown', onKeyDown);
             document.addEventListener('keyup', onKeyUp);
             document.addEventListener('mousemove', onMouseMove);
-            document.addEventListener('mousedown', (e) => { if(!isMobileMode && isGameActive && e.button === 0) shoot(); });
+            
+            // Захват мыши при клике по игре (если меню закрыто)
+            document.addEventListener('mousedown', (e) => { 
+                const modMenu = document.getElementById('mod-menu');
+                if (!isMobileMode && isGameActive && modMenu.style.display !== 'flex') {
+                    if (document.pointerLockElement !== document.body) {
+                        document.body.requestPointerLock();
+                    } else if (e.button === 0) {
+                        shoot();
+                    }
+                }
+            });
 
             document.addEventListener('pointerlockchange', () => {
                 if (!isMobileMode) {
                     if (document.pointerLockElement === document.body) startGame();
-                    else stopGame();
                 }
             });
 
@@ -409,15 +420,25 @@
             const fovSlider = document.getElementById('aim-fov');
             const fovVal = document.getElementById('fov-val');
 
+            // Открытие / Закрытие Мод-меню
             modBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 if (modMenu.style.display === 'flex') {
                     modMenu.style.display = 'none';
+                    if (!isMobileMode) document.body.requestPointerLock();
                 } else {
                     modMenu.style.display = 'flex';
+                    if (!isMobileMode && document.pointerLockElement) {
+                        document.exitPointerLock(); // Освобождаем курсор для ПК
+                    }
                 }
             });
 
+            // Предотвращаем закрытие при кликах внутри панели
+            modMenu.addEventListener('mousedown', (e) => e.stopPropagation());
+            modMenu.addEventListener('touchstart', (e) => e.stopPropagation());
+
+            // Обработчики включения/выключения функций
             espCheck.addEventListener('change', (e) => modSettings.esp = e.target.checked);
             aimCheck.addEventListener('change', (e) => modSettings.aim = e.target.checked);
             fovSlider.addEventListener('input', (e) => {
@@ -538,7 +559,6 @@
 
             vector.project(camera);
 
-            // Если объект находится за спиной игрока
             if (vector.z > 1) {
                 return { x: -1000, y: -1000, visible: false };
             }
@@ -580,7 +600,6 @@
 
                 if (!headScreenPos.visible) return;
 
-                // Расчет высоты и ширины бокса ESP
                 const boxHeight = Math.abs(baseScreenPos.y - headScreenPos.y) * 1.6;
                 const boxWidth = boxHeight * 0.55;
 
@@ -626,11 +645,10 @@
 
                 const dir = headWorldPos.clone().sub(camera.position).normalize();
 
-                // Расчёт требуемых углов Yaw и Pitch
                 const targetYaw = Math.atan2(-dir.x, -dir.z);
                 const targetPitch = Math.asin(dir.y);
 
-                // Плавная доводка (Lerp)
+                // Плавная доводка
                 yaw += (targetYaw - yaw) * 0.25;
                 pitch += (targetPitch - pitch) * 0.25;
                 applyRotation();
@@ -647,7 +665,7 @@
         }
 
         function onMouseMove(e) {
-            if (!isGameActive || isMobileMode) return;
+            if (!isGameActive || isMobileMode || document.pointerLockElement !== document.body) return;
             yaw -= e.movementX * 0.002;
             pitch -= e.movementY * 0.002;
             applyRotation();
