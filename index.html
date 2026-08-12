@@ -22,13 +22,11 @@
             color: #fff;
         }
 
-        /* --- Меню и выбор платформ --- */
+        /* --- Меню --- */
         #menu-screen {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -127,7 +125,7 @@
         #health-hud { left: 15px; color: #4ade80; }
         #score-hud { right: 15px; color: #ff9d00; }
 
-        /* --- Сенсорное управление для смартфонов --- */
+        /* --- Сенсорное управление --- */
         #touch-controls {
             position: absolute;
             top: 0; left: 0;
@@ -136,29 +134,27 @@
             z-index: 10;
         }
 
-        /* Виртуальный джойстик */
         #joystick-zone {
             position: absolute;
             bottom: 30px; left: 30px;
-            width: 120px; height: 120px;
-            background: rgba(255, 255, 255, 0.1);
+            width: 130px; height: 130px;
+            background: rgba(255, 255, 255, 0.15);
             border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 50%;
         }
         #joystick-stick {
             position: absolute;
-            top: 35px; left: 35px;
+            top: 40px; left: 40px;
             width: 50px; height: 50px;
-            background: rgba(255, 157, 0, 0.8);
+            background: rgba(255, 157, 0, 0.85);
             border-radius: 50%;
         }
 
-        /* Кнопка стрельбы */
         #fire-btn {
             position: absolute;
             bottom: 40px; right: 40px;
             width: 80px; height: 80px;
-            background: rgba(239, 68, 68, 0.8);
+            background: rgba(239, 68, 68, 0.85);
             border: 2px solid #fff;
             border-radius: 50%;
             display: flex;
@@ -169,7 +165,6 @@
             box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
         }
 
-        /* Зона вращения камеры (правая часть экрана) */
         #touch-look-zone {
             position: absolute;
             top: 0; right: 0;
@@ -180,7 +175,6 @@
 </head>
 <body>
 
-    <!-- Меню -->
     <div id="menu-screen">
         <div class="header">
             <h1>STANDOFF / CS 3D</h1>
@@ -191,7 +185,7 @@
             <div class="screenshots">
                 <div class="screen-card">
                     <div class="screen-mockup mock-1">3D Map</div>
-                    <p>Карта</p>
+                    <p>Карта со стенами</p>
                 </div>
                 <div class="screen-card">
                     <div class="screen-mockup mock-2">Crossplatform</div>
@@ -210,14 +204,12 @@
         </div>
     </div>
 
-    <!-- Игровой HUD -->
     <div id="game-hud">
         <div id="crosshair"></div>
         <div id="health-hud" class="hud-panel">+ 100</div>
         <div id="score-hud" class="hud-panel">УБИТО: <span id="score">0</span></div>
     </div>
 
-    <!-- Мобильные кнопки -->
     <div id="touch-controls">
         <div id="touch-look-zone"></div>
         <div id="joystick-zone">
@@ -228,7 +220,7 @@
 
     <script>
         let scene, camera, renderer;
-        let targets = [], score = 0;
+        let targets = [], obstacles = [], score = 0;
         let isGameActive = false, isMobileMode = false;
 
         // Физика и Движение
@@ -270,22 +262,18 @@
             createGun();
             for (let i = 0; i < 6; i++) spawnTarget();
 
-            // Слушатели событий
             window.addEventListener('resize', onWindowResize);
             
-            // Запуск ПК
             document.getElementById('start-pc').addEventListener('click', () => {
                 isMobileMode = false;
                 document.body.requestPointerLock();
             });
 
-            // Запуск Мобилки
             document.getElementById('start-mobile').addEventListener('click', () => {
                 isMobileMode = true;
                 startGame();
             });
 
-            // ПК Управление
             document.addEventListener('keydown', onKeyDown);
             document.addEventListener('keyup', onKeyUp);
             document.addEventListener('mousemove', onMouseMove);
@@ -298,9 +286,7 @@
                 }
             });
 
-            // Сенсорное управление
             setupTouchControls();
-
             animate(0);
         }
 
@@ -318,8 +304,11 @@
             touchControls.style.display = 'none';
         }
 
-        // --- Создание сцены ---
+        // --- Создание карты и объектов физики ---
         function createMap() {
+            obstacles = [];
+
+            // Пол
             const floor = new THREE.Mesh(
                 new THREE.PlaneGeometry(80, 80),
                 new THREE.MeshStandardMaterial({ color: 0x2c2c34 })
@@ -328,13 +317,31 @@
             floor.receiveShadow = true;
             scene.add(floor);
 
-            const boxGeo = new THREE.BoxGeometry(3, 3, 3);
+            // Стены периметра (добавлены в массив obstacles для коллизий)
+            const wallMat = new THREE.MeshStandardMaterial({ color: 0x3f3f4c });
+            const wallGeo1 = new THREE.BoxGeometry(80, 10, 2);
+            const wallGeo2 = new THREE.BoxGeometry(2, 10, 80);
+
+            const N = new THREE.Mesh(wallGeo1, wallMat); N.position.set(0, 5, -40);
+            const S = new THREE.Mesh(wallGeo1, wallMat); S.position.set(0, 5, 40);
+            const E = new THREE.Mesh(wallGeo2, wallMat); E.position.set(40, 5, 0);
+            const W = new THREE.Mesh(wallGeo2, wallMat); W.position.set(-40, 5, 0);
+
+            [N, S, E, W].forEach(wall => {
+                scene.add(wall);
+                obstacles.push(wall);
+            });
+
+            // Укрытия (Ящики)
+            const boxGeo = new THREE.BoxGeometry(4, 4, 4);
             const boxMat = new THREE.MeshStandardMaterial({ color: 0xd97706 });
-            [[-10, 1.5, -10], [10, 1.5, -15], [-5, 1.5, 10], [15, 1.5, 5]].forEach(pos => {
+            [[-10, 2, -10], [10, 2, -15], [-5, 2, 10], [15, 2, 5]].forEach(pos => {
                 const box = new THREE.Mesh(boxGeo, boxMat);
                 box.position.set(...pos);
                 box.castShadow = true;
+                box.receiveShadow = true;
                 scene.add(box);
+                obstacles.push(box);
             });
         }
 
@@ -368,7 +375,6 @@
             targets.push(target);
         }
 
-        // --- Стрельба ---
         function shoot() {
             gunGroup.position.z = -0.4;
             muzzleFlash.material.opacity = 1;
@@ -414,7 +420,7 @@
             camera.rotation.x = pitch;
         }
 
-        // --- Настройка Сенсорного Управления ---
+        // --- Сенсорный джойстик (Исправленная логика осей) ---
         function setupTouchControls() {
             const joystickZone = document.getElementById('joystick-zone');
             const stick = document.getElementById('joystick-stick');
@@ -425,7 +431,6 @@
             let lookTouchId = null;
             let lastLookX = 0, lastLookY = 0;
 
-            // Джойстик
             joystickZone.addEventListener('touchstart', (e) => {
                 const touch = e.changedTouches[0];
                 joystickTouchId = touch.identifier;
@@ -452,8 +457,8 @@
                 for (let touch of e.changedTouches) {
                     if (touch.identifier === joystickTouchId) {
                         joystickTouchId = null;
-                        stick.style.left = '35px';
-                        stick.style.top = '35px';
+                        stick.style.left = '40px';
+                        stick.style.top = '40px';
                         moveState.forward = 0;
                         moveState.right = 0;
                     } else if (touch.identifier === lookTouchId) {
@@ -469,20 +474,21 @@
 
                 let dx = touch.clientX - centerX;
                 let dy = touch.clientY - centerY;
-                const dist = Math.min(Math.hypot(dx, dy), 40);
+                const dist = Math.min(Math.hypot(dx, dy), 45);
                 const angle = Math.atan2(dy, dx);
 
                 const stickX = Math.cos(angle) * dist;
                 const stickY = Math.sin(angle) * dist;
 
-                stick.style.left = `${35 + stickX}px`;
-                stick.style.top = `${35 + stickY}px`;
+                stick.style.left = `${40 + stickX}px`;
+                stick.style.top = `${40 + stickY}px`;
 
-                moveState.right = stickX / 40;
-                moveState.forward = -stickY / 40;
+                // Тянем ВВЕРХ (dy < 0) -> Вперед (forward > 0)
+                // Тянем ВПРАВО (dx > 0) -> Вправо (right > 0)
+                moveState.forward = -stickY / 45;
+                moveState.right = stickX / 45;
             }
 
-            // Поворот камеры тачем
             lookZone.addEventListener('touchstart', (e) => {
                 const touch = e.changedTouches[0];
                 lookTouchId = touch.identifier;
@@ -490,11 +496,29 @@
                 lastLookY = touch.clientY;
             });
 
-            // Кнопка Огонь
             fireBtn.addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 if (isGameActive) shoot();
             });
+        }
+
+        // --- Функция проверки столкновений со стенами ---
+        function checkCollision(newPosition) {
+            const playerRadius = 1.0; // Радиус хитбокса игрока
+            
+            for (let obstacle of obstacles) {
+                const box = new THREE.Box3().setFromObject(obstacle);
+                
+                // Проверяем дистанцию до границ препятствий
+                const closestPoint = new THREE.Vector3();
+                box.clampPoint(newPosition, closestPoint);
+                
+                const distance = newPosition.distanceTo(closestPoint);
+                if (distance < playerRadius) {
+                    return true; // Есть столкновение
+                }
+            }
+            return false;
         }
 
         function onWindowResize() {
@@ -503,7 +527,7 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         }
 
-        // --- Главный Цикл ---
+        // --- Главный игровой цикл ---
         let prevTime = performance.now();
         function animate(time) {
             requestAnimationFrame(animate);
@@ -513,15 +537,39 @@
 
                 gunGroup.position.z += (-0.5 - gunGroup.position.z) * 0.1;
 
-                velocity.x -= velocity.x * 10.0 * delta;
-                velocity.z -= velocity.z * 10.0 * delta;
+                // Вычисление предполагаемого вектора смещения
+                const moveVector = new THREE.Vector3();
+                
+                if (Math.abs(moveState.forward) > 0.05) {
+                    const dir = new THREE.Vector3();
+                    camera.getWorldDirection(dir);
+                    dir.y = 0; // Игнорируем наклон камеры вверх/вниз для ходьбы
+                    dir.normalize();
+                    moveVector.addScaledVector(dir, moveState.forward * speed * delta);
+                }
+                
+                if (Math.abs(moveState.right) > 0.05) {
+                    const dir = new THREE.Vector3();
+                    camera.getWorldDirection(dir);
+                    dir.y = 0;
+                    dir.normalize();
+                    dir.cross(new THREE.Vector3(0, 1, 0)); // Перпендикулярный вектор (вправо)
+                    dir.negate();
+                    moveVector.addScaledVector(dir, moveState.right * speed * delta);
+                }
 
-                if (Math.abs(moveState.forward) > 0.1) velocity.z -= moveState.forward * speed * 10.0 * delta;
-                if (Math.abs(moveState.right) > 0.1) velocity.x += moveState.right * speed * 10.0 * delta;
+                // Попытка передвижения X и Z отдельно для скольжения вдоль стен
+                const nextPositionX = camera.position.clone().add(new THREE.Vector3(moveVector.x, 0, 0));
+                if (!checkCollision(nextPositionX)) {
+                    camera.position.x = nextPositionX.x;
+                }
 
-                camera.translateX(velocity.x * delta);
-                camera.translateZ(-velocity.z * delta);
-                camera.position.y = 1.7;
+                const nextPositionZ = camera.position.clone().add(new THREE.Vector3(0, 0, moveVector.z));
+                if (!checkCollision(nextPositionZ)) {
+                    camera.position.z = nextPositionZ.z;
+                }
+
+                camera.position.y = 1.7; // Фиксированная высота игрока
             }
 
             prevTime = time;
