@@ -3,246 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Standoff 2 - Sandstone 3D</title>
+    <title>Standoff 2 - Sandstone M4A1 HD</title>
     <style>
         * {
             box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            user-select: none;
-            -webkit-user-select: none;
+            margin: 0; padding: 0;
+            user-select: none; -webkit-user-select: none;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             touch-action: none;
         }
         body, html {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background-color: #d4a373;
-            color: #fff;
+            width: 100%; height: 100%;
+            overflow: hidden; background-color: #d4a373; color: #fff;
         }
 
         /* --- Главное меню --- */
         #menu-screen {
-            position: absolute;
-            top: 0; left: 0;
+            position: absolute; top: 0; left: 0;
             width: 100%; height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: center;
+            display: flex; flex-direction: column;
+            justify-content: space-between; align-items: center;
             padding: 20px;
-            background: linear-gradient(135deg, #2b1e16 0%, #170d08 100%);
+            background: linear-gradient(135deg, #1c130d 0%, #0d0805 100%);
             z-index: 20;
         }
 
         .header { text-align: center; margin-top: 10px; }
         .header h1 {
-            font-size: 2.2rem;
-            color: #f4a261;
+            font-size: 2.2rem; color: #f4a261;
             text-shadow: 0 0 12px rgba(244, 162, 97, 0.6);
         }
         .header p { color: #e9c46a; font-size: 0.9rem; margin-top: 5px; }
 
         .gallery-container { width: 100%; max-width: 800px; }
-        .screenshots {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-        }
+        .screenshots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
         .screen-card {
-            background: #3a281d;
-            border-radius: 8px;
-            overflow: hidden;
-            border: 1px solid #5a3e2e;
-            text-align: center;
-            font-size: 0.8rem;
-            padding-bottom: 8px;
+            background: #2b1c14; border-radius: 8px; overflow: hidden;
+            border: 1px solid #4a3022; text-align: center; font-size: 0.8rem; padding-bottom: 8px;
         }
         .screen-mockup {
-            height: 90px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-weight: bold;
-            color: #fff;
+            height: 90px; display: flex; justify-content: center; align-items: center;
+            font-weight: bold; color: #fff;
         }
         .mock-1 { background: linear-gradient(45deg, #e76f51, #f4a261); }
         .mock-2 { background: linear-gradient(45deg, #2a9d8f, #e9c46a); }
         .mock-3 { background: linear-gradient(45deg, #d4a373, #875c36); }
 
-        .mode-selection {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 10px;
-            width: 100%;
-            max-width: 400px;
-        }
+        .mode-selection { display: flex; gap: 15px; margin-bottom: 10px; width: 100%; max-width: 400px; }
         .btn {
-            flex: 1;
-            padding: 14px;
-            font-size: 1rem;
-            font-weight: bold;
-            color: #170d08;
-            background: #f4a261;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            box-shadow: 0 0 10px rgba(244, 162, 97, 0.4);
+            flex: 1; padding: 14px; font-size: 1rem; font-weight: bold;
+            color: #170d08; background: #f4a261; border: none; border-radius: 6px;
+            cursor: pointer; box-shadow: 0 0 10px rgba(244, 162, 97, 0.4);
         }
         .btn:active { transform: scale(0.98); }
 
         /* --- HUD --- */
         #game-hud {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            display: none;
-            pointer-events: none;
-            z-index: 5;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: none; pointer-events: none; z-index: 5;
         }
 
         #crosshair {
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 10px; height: 10px;
-            transform: translate(-50%, -50%);
+            position: absolute; top: 50%; left: 50%;
+            width: 8px; height: 8px; transform: translate(-50%, -50%);
         }
         #crosshair::before, #crosshair::after {
-            content: ''; position: absolute; background: rgba(0, 255, 0, 0.85);
+            content: ''; position: absolute; background: rgba(0, 255, 0, 0.9);
         }
-        #crosshair::before { top: 4px; left: -8px; width: 26px; height: 2px; }
-        #crosshair::after { top: -8px; left: 4px; width: 2px; height: 26px; }
+        #crosshair::before { top: 3px; left: -6px; width: 20px; height: 2px; }
+        #crosshair::after { top: -6px; left: 3px; width: 2px; height: 20px; }
 
         .hud-panel {
-            position: absolute;
-            top: 15px;
-            background: rgba(20, 10, 5, 0.7);
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-size: 1.1rem;
-            font-weight: bold;
+            position: absolute; top: 15px; background: rgba(20, 10, 5, 0.75);
+            padding: 8px 16px; border-radius: 6px; font-size: 1.1rem; font-weight: bold;
             border: 1px solid rgba(244, 162, 97, 0.3);
         }
         #health-hud { left: 15px; color: #2a9d8f; }
         #score-hud { right: 15px; color: #f4a261; }
 
         #esp-canvas {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: 4;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 4;
         }
 
         /* --- Мод Меню --- */
         #mod-container {
-            position: absolute;
-            top: 60px; left: 15px;
-            z-index: 9999;
-            pointer-events: auto;
+            position: absolute; top: 60px; left: 15px; z-index: 9999; pointer-events: auto;
         }
-
         #mod-toggle-btn {
-            background: #9d4edd;
-            color: #fff;
-            border: 2px solid #fff;
-            padding: 10px 16px;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 0.9rem;
-            cursor: pointer;
-            box-shadow: 0 0 15px rgba(157, 78, 221, 0.8);
-            display: block;
+            background: #9d4edd; color: #fff; border: 2px solid #fff;
+            padding: 10px 16px; border-radius: 8px; font-weight: bold; font-size: 0.9rem;
+            cursor: pointer; box-shadow: 0 0 15px rgba(157, 78, 221, 0.8); display: block;
         }
-
         #mod-menu {
-            margin-top: 10px;
-            width: 250px;
-            background: rgba(20, 15, 25, 0.96);
-            border: 2px solid #9d4edd;
-            border-radius: 12px;
-            padding: 16px;
-            display: none;
-            flex-direction: column;
-            gap: 14px;
-            box-shadow: 0 0 25px rgba(0, 0, 0, 0.9);
+            margin-top: 10px; width: 250px; background: rgba(20, 15, 25, 0.96);
+            border: 2px solid #9d4edd; border-radius: 12px; padding: 16px;
+            display: none; flex-direction: column; gap: 14px; box-shadow: 0 0 25px rgba(0, 0, 0, 0.9);
         }
-        #mod-menu h3 {
-            color: #c77dff;
-            font-size: 1.1rem;
-            text-align: center;
-            border-bottom: 1px solid #444;
-            padding-bottom: 6px;
-        }
-        .mod-option {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 0.95rem;
-            cursor: pointer;
-        }
-        .mod-option input[type="checkbox"] {
-            width: 20px; height: 20px;
-            accent-color: #9d4edd;
-            cursor: pointer;
-        }
-        .slider-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            font-size: 0.85rem;
-        }
-        .slider-group input[type="range"] {
-            accent-color: #9d4edd;
-            cursor: pointer;
-        }
+        #mod-menu h3 { color: #c77dff; font-size: 1.1rem; text-align: center; border-bottom: 1px solid #444; padding-bottom: 6px; }
+        .mod-option { display: flex; align-items: center; justify-content: space-between; font-size: 0.95rem; cursor: pointer; }
+        .mod-option input[type="checkbox"] { width: 20px; height: 20px; accent-color: #9d4edd; cursor: pointer; }
+        .slider-group { display: flex; flex-direction: column; gap: 6px; font-size: 0.85rem; }
+        .slider-group input[type="range"] { accent-color: #9d4edd; cursor: pointer; }
 
-        /* --- Сенсор --- */
+        /* --- Сенсорное управление --- */
         #touch-controls {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            display: none;
-            z-index: 10;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: none; z-index: 10;
         }
-
         #joystick-zone {
-            position: absolute;
-            bottom: 30px; left: 30px;
-            width: 130px; height: 130px;
-            background: rgba(255, 255, 255, 0.15);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
+            position: absolute; bottom: 30px; left: 30px; width: 130px; height: 130px;
+            background: rgba(255, 255, 255, 0.15); border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 50%;
         }
         #joystick-stick {
-            position: absolute;
-            top: 40px; left: 40px;
-            width: 50px; height: 50px;
-            background: rgba(244, 162, 97, 0.9);
-            border-radius: 50%;
+            position: absolute; top: 40px; left: 40px; width: 50px; height: 50px;
+            background: rgba(244, 162, 97, 0.9); border-radius: 50%;
         }
-
         #fire-btn {
-            position: absolute;
-            bottom: 40px; right: 40px;
-            width: 80px; height: 80px;
-            background: rgba(230, 57, 70, 0.85);
-            border: 2px solid #fff;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-weight: bold;
-            font-size: 0.9rem;
-            box-shadow: 0 0 15px rgba(230, 57, 70, 0.5);
+            position: absolute; bottom: 40px; right: 40px; width: 80px; height: 80px;
+            background: rgba(230, 57, 70, 0.85); border: 2px solid #fff; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center; font-weight: bold;
+            font-size: 0.9rem; box-shadow: 0 0 15px rgba(230, 57, 70, 0.5);
         }
-
-        #touch-look-zone {
-            position: absolute;
-            top: 0; right: 0;
-            width: 50%; height: 100%;
-        }
+        #touch-look-zone { position: absolute; top: 0; right: 0; width: 50%; height: 100%; }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
@@ -250,23 +133,23 @@
 
     <div id="menu-screen">
         <div class="header">
-            <h1>SANDSTONE 3D</h1>
-            <p>Standoff 2 Map Recreation</p>
+            <h1>SANDSTONE HD</h1>
+            <p>M4A1 Hands & Full Corridors Map</p>
         </div>
 
         <div class="gallery-container">
             <div class="screenshots">
                 <div class="screen-card">
-                    <div class="screen-mockup mock-1">PLANT A / B</div>
-                    <p>Точки закладки</p>
+                    <div class="screen-mockup mock-1">M4A1 HANDS</div>
+                    <p>Руки и Автомат</p>
                 </div>
                 <div class="screen-card">
-                    <div class="screen-mockup mock-2">MID & ARCS</div>
-                    <p>Песчаные арки</p>
+                    <div class="screen-mockup mock-2">CORRIDORS</div>
+                    <p>Узкие туннели</p>
                 </div>
                 <div class="screen-card">
-                    <div class="screen-mockup mock-3">SAND TEXTURES</div>
-                    <p>Стиль Sandstone</p>
+                    <div class="screen-mockup mock-3">NO CLIP SPAWN</div>
+                    <p>Без спавна в стенах</p>
                 </div>
             </div>
         </div>
@@ -314,62 +197,70 @@
 
     <script>
         let scene, camera, renderer;
-        let targets = [], obstacles = [];
+        let targets = [], obstacles = [], spawnZones = [];
         let score = 0;
         let isGameActive = false, isMobileMode = false;
 
         const moveState = { forward: 0, right: 0 };
-        const speed = 11.0;
+        const speed = 10.0;
         let pitch = 0, yaw = 0;
 
-        let gunGroup, muzzleFlash;
+        // Оружие и Hands
+        let handsGunGroup, muzzleFlash, recoilOffset = 0, bobbingAngle = 0;
 
+        // Мод-Меню
         const modSettings = { esp: false, aim: false, aimFov: 120 };
         let espCanvas, espCtx;
 
+        // UI Элементы
         const menuScreen = document.getElementById('menu-screen');
         const gameHud = document.getElementById('game-hud');
         const touchControls = document.getElementById('touch-controls');
         const scoreEl = document.getElementById('score');
 
-        // Материалы Sandstone
-        let sandWallMat, darkSandMat, woodCrateMat, barrelMat, plasterMat;
+        // Текстуры и Материалы Sandstone
+        let sandWallMat, darkSandMat, woodCrateMat, barrelMat, plasterMat, roofMat;
 
         function init() {
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0xbde0fe); // Небо
-            scene.fog = new THREE.FogExp2(0xd4a373, 0.008);
+            scene.background = new THREE.Color(0x9bd0e8);
+            scene.fog = new THREE.FogExp2(0xd4a373, 0.009);
 
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             document.body.appendChild(renderer.domElement);
 
             espCanvas = document.getElementById('esp-canvas');
             espCtx = espCanvas.getContext('2d');
             resizeEspCanvas();
 
-            // Свет (Яркое солнечное освещение)
-            const ambientLight = new THREE.AmbientLight(0xfff3b0, 0.7);
+            // Свет (Солнечный песчаный день)
+            const ambientLight = new THREE.AmbientLight(0xfff1e6, 0.75);
             scene.add(ambientLight);
 
-            const sunLight = new THREE.DirectionalLight(0xffecd1, 1.1);
-            sunLight.position.set(40, 60, 20);
+            const sunLight = new THREE.DirectionalLight(0xffe8d6, 1.2);
+            sunLight.position.set(50, 80, 30);
             sunLight.castShadow = true;
+            sunLight.shadow.mapSize.width = 2048;
+            sunLight.shadow.mapSize.height = 2048;
             scene.add(sunLight);
 
-            // Инициализация материалов
-            sandWallMat = new THREE.MeshStandardMaterial({ color: 0xdd9255, roughness: 0.9 });
-            darkSandMat = new THREE.MeshStandardMaterial({ color: 0xb56576, roughness: 0.8 });
-            woodCrateMat = new THREE.MeshStandardMaterial({ color: 0x8b5e3c, roughness: 0.7 });
-            barrelMat = new THREE.MeshStandardMaterial({ color: 0x52796f, roughness: 0.5 });
-            plasterMat = new THREE.MeshStandardMaterial({ color: 0xf4f1de, roughness: 0.9 });
+            // Материалы
+            sandWallMat = new THREE.MeshStandardMaterial({ color: 0xdd9255, roughness: 0.85 });
+            darkSandMat = new THREE.MeshStandardMaterial({ color: 0xaa6c39, roughness: 0.9 });
+            woodCrateMat = new THREE.MeshStandardMaterial({ color: 0x8b5e3c, roughness: 0.6 });
+            barrelMat = new THREE.MeshStandardMaterial({ color: 0x3d5a80, roughness: 0.4 });
+            plasterMat = new THREE.MeshStandardMaterial({ color: 0xf4f1de, roughness: 0.8 });
+            roofMat = new THREE.MeshStandardMaterial({ color: 0x8d5b4c, roughness: 0.9 });
 
-            createSandstoneMap();
-            createGun();
-            for (let i = 0; i < 7; i++) spawnTarget();
+            createFullSandstoneMap();
+            createM4A1WithHands();
+
+            for (let i = 0; i < 8; i++) spawnTarget();
 
             window.addEventListener('resize', onWindowResize);
 
@@ -412,66 +303,90 @@
             espCanvas.height = window.innerHeight;
         }
 
-        // --- Создание карты Sandstone ---
-        function createSandstoneMap() {
+        // --- СОЗДАНИЕ КАРТЫ С КОРИДОРАМИ И ТУННЕЛЯМИ (SANDSTONE) ---
+        function createFullSandstoneMap() {
             obstacles = [];
+            spawnZones = [];
 
             // Земля
             const floor = new THREE.Mesh(
-                new THREE.PlaneGeometry(120, 120),
-                new THREE.MeshStandardMaterial({ color: 0xd4a373, roughness: 0.95 })
+                new THREE.PlaneGeometry(160, 160),
+                new THREE.MeshStandardMaterial({ color: 0xc98a51, roughness: 0.95 })
             );
             floor.rotation.x = -Math.PI / 2;
             floor.receiveShadow = true;
             scene.add(floor);
 
-            // Внешние стены
-            createWall(0, 6, -60, 120, 12, 2, sandWallMat);
-            createWall(0, 6, 60, 120, 12, 2, sandWallMat);
-            createWall(-60, 6, 0, 2, 12, 120, sandWallMat);
-            createWall(60, 6, 0, 2, 12, 120, sandWallMat);
+            // Внешний периметр
+            createWall(0, 8, -80, 160, 16, 2, sandWallMat);
+            createWall(0, 8, 80, 160, 16, 2, sandWallMat);
+            createWall(-80, 8, 0, 2, 16, 160, sandWallMat);
+            createWall(80, 8, 0, 2, 16, 160, sandWallMat);
 
-            // --- MID (Центр карты) ---
-            createWall(-10, 5, 0, 2, 10, 40, sandWallMat);
-            createWall(10, 5, -5, 2, 10, 30, sandWallMat);
+            // --- МИД И КЕНТОВЫЕ КОРИДОРЫ ---
+            // Главные центральные стены образующие коридор Мида
+            createWall(-12, 6, -10, 2, 12, 50, sandWallMat);
+            createWall(12, 6, 0, 2, 12, 40, sandWallMat);
 
-            // Арка на Миду
-            createWall(0, 9, 15, 20, 3, 3, sandWallMat);
+            // Крытые туннели / Темка
+            createTunnel(-30, 0, -20, 12, 6, 40);
+            createTunnel(30, 0, 20, 12, 6, 30);
 
-            // --- PLANT A (Справа) ---
-            createWall(35, 5, -35, 30, 10, 2, plasterMat);
-            createWall(20, 5, -45, 2, 10, 20, plasterMat);
-            // Плент-платформа A
-            const plantA = new THREE.Mesh(new THREE.BoxGeometry(12, 1.5, 12), sandWallMat);
-            plantA.position.set(38, 0.75, -48);
+            // Арка Мида
+            createWall(0, 10, 10, 24, 4, 4, sandWallMat);
+
+            // --- ЗОНА ПЛЕНТА А (Лабиринт из зданий и узких проходов) ---
+            createWall(45, 6, -40, 40, 12, 2, plasterMat);
+            createWall(25, 6, -60, 2, 12, 40, plasterMat);
+            createWall(55, 6, -60, 2, 12, 40, plasterMat);
+            createWall(40, 6, -75, 30, 12, 2, plasterMat);
+            // Крыша Апартаментов A
+            createRoof(40, 12, -55, 32, 2, 38);
+
+            // Плент А
+            const plantA = new THREE.Mesh(new THREE.BoxGeometry(10, 1, 10), darkSandMat);
+            plantA.position.set(40, 0.5, -45);
             scene.add(plantA);
-            obstacles.push(plantA);
 
-            // --- PLANT B (Слева) ---
-            createWall(-35, 5, 35, 25, 10, 2, darkSandMat);
-            createWall(-22, 5, 45, 2, 10, 20, darkSandMat);
-            // Плент-платформа B
-            const plantB = new THREE.Mesh(new THREE.BoxGeometry(10, 1.5, 10), darkSandMat);
-            plantB.position.set(-42, 0.75, 48);
+            // --- ЗОНА ПЛЕНТА B (Узкий Рынок и Замкнутый Двор) ---
+            createWall(-45, 6, 40, 35, 12, 2, darkSandMat);
+            createWall(-25, 6, 55, 2, 12, 30, darkSandMat);
+            createWall(-60, 6, 55, 2, 12, 30, darkSandMat);
+            createWall(-40, 6, 70, 40, 12, 2, darkSandMat);
+            // Туннель перехода B
+            createTunnel(-40, 0, 20, 10, 6, 25);
+
+            // Плент B
+            const plantB = new THREE.Mesh(new THREE.BoxGeometry(10, 1, 10), sandWallMat);
+            plantB.position.set(-42, 0.5, 52);
             scene.add(plantB);
-            obstacles.push(plantB);
 
-            // --- Декорации и Ящики (Укрытия Sandstone) ---
-            // Деревянные ящики A/B/Mid
-            spawnCrate(36, 1.5, -46, 2.5, 3, 2.5);
-            spawnCrate(39, 1.5, -46, 2.5, 3, 2.5);
-            spawnCrate(37.5, 4.25, -46, 2.3, 2.5, 2.3);
+            // --- ЗОНЫ ДЛЯ БЕЗОПАСНОГО СПАВНА В КОРИДОРАХ (Без застревания в стенах) ---
+            spawnZones = [
+                { x: 0, z: 65, radius: 4 },    // T-Spawn
+                { x: 0, z: -65, radius: 4 },   // CT-Spawn
+                { x: -30, z: -20, radius: 3 }, // Темка A
+                { x: 30, z: 20, radius: 3 },  // Переход B
+                { x: 40, z: -45, radius: 3 }, // Plant A
+                { x: -42, z: 52, radius: 3 }, // Plant B
+                { x: 0, z: 0, radius: 3 },     // Mid Center
+                { x: -30, z: 35, radius: 3 }, // Рынок
+                { x: 30, z: -35, radius: 3 }  // Длинник A
+            ];
 
-            spawnCrate(-40, 1.5, 46, 3, 3, 3);
-            spawnCrate(-43, 1.5, 46, 2.5, 2.5, 2.5);
+            // Ящики и бочки в безопасных местах
+            spawnCrate(42, 1.5, -43, 2.5, 3, 2.5);
+            spawnCrate(38, 1.5, -43, 2.5, 3, 2.5);
+            spawnCrate(40, 4.25, -43, 2.2, 2.5, 2.2);
 
-            spawnCrate(0, 1.25, -10, 2.5, 2.5, 2.5);
-            spawnCrate(-3, 1.25, -10, 2.5, 2.5, 2.5);
-            spawnCrate(15, 1.25, 10, 2.5, 2.5, 2.5);
+            spawnCrate(-40, 1.5, 50, 3, 3, 3);
+            spawnCrate(-44, 1.5, 50, 2.5, 2.5, 2.5);
 
-            // Бочки
-            spawnBarrel(-5, 1.25, 5);
-            spawnBarrel(32, 1.25, -38);
+            spawnCrate(-2, 1.25, -5, 2.5, 2.5, 2.5);
+            spawnCrate(2, 1.25, 5, 2.5, 2.5, 2.5);
+
+            spawnBarrel(-32, 1.25, -10);
+            spawnBarrel(32, 1.25, 10);
         }
 
         function createWall(x, y, z, w, h, d, mat) {
@@ -481,6 +396,21 @@
             wall.receiveShadow = true;
             scene.add(wall);
             obstacles.push(wall);
+        }
+
+        function createTunnel(x, y, z, w, h, d) {
+            // Левая стена, правая стена и крыша туннеля
+            createWall(x - w / 2, h / 2, z, 1.5, h, d, darkSandMat);
+            createWall(x + w / 2, h / 2, z, 1.5, h, d, darkSandMat);
+            createRoof(x, h, z, w + 1.5, 1.5, d);
+        }
+
+        function createRoof(x, y, z, w, h, d) {
+            const roof = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), roofMat);
+            roof.position.set(x, y, z);
+            roof.castShadow = true;
+            scene.add(roof);
+            obstacles.push(roof);
         }
 
         function spawnCrate(x, y, z, w, h, d) {
@@ -493,7 +423,7 @@
         }
 
         function spawnBarrel(x, y, z) {
-            const barrel = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 2.5, 12), barrelMat);
+            const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 2.4, 12), barrelMat);
             barrel.position.set(x, y, z);
             barrel.castShadow = true;
             barrel.receiveShadow = true;
@@ -501,63 +431,136 @@
             obstacles.push(barrel);
         }
 
-        function createGun() {
-            gunGroup = new THREE.Group();
-            const body = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.18, 0.7), new THREE.MeshStandardMaterial({ color: 0x222222 }));
-            const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.4), new THREE.MeshStandardMaterial({ color: 0x111111 }));
+        // --- СОЗДАНИЕ РУК С M4A1 ---
+        function createM4A1WithHands() {
+            handsGunGroup = new THREE.Group();
+
+            const skinMat = new THREE.MeshStandardMaterial({ color: 0xd2b48c, roughness: 0.6 });
+            const gloveMat = new THREE.MeshStandardMaterial({ color: 0x2b2d42, roughness: 0.5 });
+            const gunMetalMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, metalness: 0.8, roughness: 0.3 });
+            const darkPlasticMat = new THREE.MeshStandardMaterial({ color: 0x2d3142, roughness: 0.5 });
+
+            // 1. Модель M4A1
+            const m4a1 = new THREE.Group();
+
+            // Корпус (Receiver)
+            const receiver = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.14, 0.45), gunMetalMat);
+            m4a1.add(receiver);
+
+            // Цевьё (Handguard)
+            const handguard = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.35, 8), darkPlasticMat);
+            handguard.rotation.x = Math.PI / 2;
+            handguard.position.set(0, -0.01, -0.38);
+            m4a1.add(handguard);
+
+            // Ствол (Barrel)
+            const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.4, 8), gunMetalMat);
             barrel.rotation.x = Math.PI / 2;
-            barrel.position.set(0, 0.03, -0.45);
+            barrel.position.set(0, 0.01, -0.65);
+            m4a1.add(barrel);
 
-            muzzleFlash = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), new THREE.MeshBasicMaterial({ color: 0xffaa00, transparent: true, opacity: 0 }));
-            muzzleFlash.position.set(0, 0.03, -0.7);
+            // Глушитель / Пламегаситель (Muzzle)
+            const suppressor = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.25, 12), gunMetalMat);
+            suppressor.rotation.x = Math.PI / 2;
+            suppressor.position.set(0, 0.01, -0.85);
+            m4a1.add(suppressor);
 
-            gunGroup.add(body, barrel, muzzleFlash);
-            gunGroup.position.set(0.25, -0.25, -0.5);
-            camera.add(gunGroup);
+            // Магазин (Magazine)
+            const mag = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.28, 0.12), darkPlasticMat);
+            mag.position.set(0, -0.18, -0.1);
+            mag.rotation.x = 0.2;
+            m4a1.add(mag);
+
+            // Приклад (Stock)
+            const stock = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.14, 0.3), darkPlasticMat);
+            stock.position.set(0, 0.02, 0.3);
+            m4a1.add(stock);
+
+            // Рукоятка (Pistol Grip)
+            const grip = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.18, 0.08), darkPlasticMat);
+            grip.position.set(0, -0.14, 0.1);
+            grip.rotation.x = -0.35;
+            m4a1.add(grip);
+
+            // Вспышка выстрела
+            muzzleFlash = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 8), new THREE.MeshBasicMaterial({ color: 0xffcc00, transparent: true, opacity: 0 }));
+            muzzleFlash.position.set(0, 0.01, -1.0);
+            m4a1.add(muzzleFlash);
+
+            // 2. Руки оператора (Левая и Правая)
+            // Правая рука (держит рукоятка)
+            const rightForearm = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.45, 12), skinMat);
+            rightForearm.position.set(0.18, -0.22, 0.15);
+            rightForearm.rotation.set(-0.6, -0.3, 0.4);
+
+            const rightGlove = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.09, 0.12), gloveMat);
+            rightGlove.position.set(0.03, -0.12, 0.08);
+            rightForearm.add(rightGlove);
+
+            // Левая рука (держит цевьё)
+            const leftForearm = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.5, 12), skinMat);
+            leftForearm.position.set(-0.22, -0.2, -0.15);
+            leftForearm.rotation.set(-0.4, 0.5, -0.5);
+
+            const leftGlove = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.09, 0.12), gloveMat);
+            leftGlove.position.set(0, -0.18, -0.2);
+            leftForearm.add(leftGlove);
+
+            handsGunGroup.add(m4a1, rightForearm, leftForearm);
+            
+            // Позиционирование рук перед камерой
+            handsGunGroup.position.set(0.22, -0.26, -0.42);
+            camera.add(handsGunGroup);
             scene.add(camera);
         }
 
+        // --- БЕЗОПАСНЫЙ СПАВН ПЕРСОНАЖЕЙ (БЕЗ ТЕКСТУР) ---
         function spawnTarget() {
             const target = new THREE.Group();
-            
-            // Враг (Террорист / Спецназ)
-            const head = new THREE.Mesh(new THREE.SphereGeometry(0.4, 16, 16), new THREE.MeshStandardMaterial({ color: 0xd90429 }));
-            head.position.y = 1.6;
+
+            // Модель соперника (Террорист)
+            const head = new THREE.Mesh(new THREE.SphereGeometry(0.38, 16, 16), new THREE.MeshStandardMaterial({ color: 0xef4444 }));
+            head.position.y = 1.65;
             head.name = "head";
 
-            const body = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.35, 1.2), new THREE.MeshStandardMaterial({ color: 0x2b2d42 }));
-            body.position.y = 0.8;
+            const body = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.32, 1.2), new THREE.MeshStandardMaterial({ color: 0x1f2937 }));
+            body.position.y = 0.85;
 
             target.add(head, body);
 
-            // Спавн в игровых зонах
-            const spawnPoints = [
-                { x: 38, z: -48 }, // A Plant
-                { x: -42, z: 48 }, // B Plant
-                { x: 0, z: -25 },   // Mid
-                { x: 15, z: 20 },   // B Long
-                { x: -25, z: -15 }, // A Short
-                { x: -35, z: 15 },  // Dark
-                { x: 30, z: -10 }   // CT Spawn
-            ];
+            // Выбираем случайную зону и рассчитываем спавн без столкновений
+            let validPos = false;
+            let attempts = 0;
+            let posX = 0, posZ = 0;
 
-            const pt = spawnPoints[Math.floor(Math.random() * spawnPoints.length)];
-            target.position.set(pt.x + (Math.random() - 0.5) * 6, 0, pt.z + (Math.random() - 0.5) * 6);
-            
+            while (!validPos && attempts < 30) {
+                attempts++;
+                const zone = spawnZones[Math.floor(Math.random() * spawnZones.length)];
+                posX = zone.x + (Math.random() - 0.5) * zone.radius * 2;
+                posZ = zone.z + (Math.random() - 0.5) * zone.radius * 2;
+
+                const testPos = new THREE.Vector3(posX, 1.0, posZ);
+                if (!checkCollision(testPos, 1.2)) {
+                    validPos = true;
+                }
+            }
+
+            target.position.set(posX, 0, posZ);
             scene.add(target);
             targets.push(target);
         }
 
         function shoot() {
-            gunGroup.position.z = -0.4;
+            // Анимация отдачи M4A1
+            recoilOffset = 0.08;
             muzzleFlash.material.opacity = 1;
-            setTimeout(() => { muzzleFlash.material.opacity = 0; }, 50);
+            setTimeout(() => { muzzleFlash.material.opacity = 0; }, 40);
 
             const raycaster = new THREE.Raycaster();
             raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
 
             const meshes = [];
-            targets.forEach(t => t.traverse(c => { if(c.isMesh) meshes.push(c); }));
+            targets.forEach(t => t.traverse(c => { if (c.isMesh) meshes.push(c); }));
 
             const intersects = raycaster.intersectObjects(meshes);
             if (intersects.length > 0) {
@@ -566,7 +569,7 @@
                 targets = targets.filter(t => t !== hitTarget);
                 score++;
                 scoreEl.innerText = score;
-                setTimeout(spawnTarget, 800);
+                setTimeout(spawnTarget, 700);
             }
         }
 
@@ -615,14 +618,14 @@
                 const boxWidth = boxHeight * 0.55;
 
                 if (modSettings.esp) {
-                    espCtx.strokeStyle = '#e63946';
+                    espCtx.strokeStyle = '#ef4444';
                     espCtx.lineWidth = 2;
                     espCtx.strokeRect(headPos.x - boxWidth / 2, headPos.y - boxHeight * 0.15, boxWidth, boxHeight);
 
                     espCtx.beginPath();
                     espCtx.moveTo(screenCenter.x, 0);
                     espCtx.lineTo(headPos.x, headPos.y - boxHeight * 0.15);
-                    espCtx.strokeStyle = 'rgba(230, 57, 70, 0.4)';
+                    espCtx.strokeStyle = 'rgba(239, 68, 68, 0.4)';
                     espCtx.stroke();
                 }
 
@@ -684,7 +687,7 @@
             menuScreen.style.display = 'none';
             gameHud.style.display = 'block';
             if (isMobileMode) touchControls.style.display = 'block';
-            camera.position.set(0, 1.7, 45); // Спавн T
+            camera.position.set(0, 1.7, 65); // T-Spawn
         }
 
         const keys = {};
@@ -785,13 +788,13 @@
             });
         }
 
-        function checkCollision(newPosition) {
-            const playerRadius = 0.9;
+        // Продвинутая коллизия (Проверка хитбоксов)
+        function checkCollision(newPosition, radius = 0.8) {
             for (let obstacle of obstacles) {
                 const box = new THREE.Box3().setFromObject(obstacle);
                 const closestPoint = new THREE.Vector3();
                 box.clampPoint(newPosition, closestPoint);
-                if (newPosition.distanceTo(closestPoint) < playerRadius) return true;
+                if (newPosition.distanceTo(closestPoint) < radius) return true;
             }
             return false;
         }
@@ -809,8 +812,8 @@
 
             if (isGameActive) {
                 const delta = (time - prevTime) / 1000;
-                gunGroup.position.z += (-0.5 - gunGroup.position.z) * 0.1;
 
+                // Движение и анимация рук
                 const moveVector = new THREE.Vector3();
                 const sinYaw = Math.sin(yaw);
                 const cosYaw = Math.cos(yaw);
@@ -824,6 +827,9 @@
                     moveVector.z -= sinYaw * moveState.right * speed * delta;
                 }
 
+                const isMoving = moveVector.length() > 0.001;
+
+                // Скольжение и физика стен
                 const nextX = camera.position.clone().add(new THREE.Vector3(moveVector.x, 0, 0));
                 if (!checkCollision(nextX)) camera.position.x = nextX.x;
 
@@ -831,6 +837,21 @@
                 if (!checkCollision(nextZ)) camera.position.z = nextZ.z;
 
                 camera.position.y = 1.7;
+
+                // Покачивание оружия при ходьбе (Sway / Bobbing)
+                if (isMoving) {
+                    bobbingAngle += delta * 12;
+                    handsGunGroup.position.x = 0.22 + Math.cos(bobbingAngle) * 0.015;
+                    handsGunGroup.position.y = -0.26 + Math.sin(bobbingAngle * 2) * 0.012;
+                } else {
+                    handsGunGroup.position.x += (0.22 - handsGunGroup.position.x) * 0.1;
+                    handsGunGroup.position.y += (-0.26 - handsGunGroup.position.y) * 0.1;
+                }
+
+                // Гашение отдачи M4A1
+                recoilOffset += (0 - recoilOffset) * 0.15;
+                handsGunGroup.position.z = -0.42 + recoilOffset;
+
                 processModFeatures();
             }
 
