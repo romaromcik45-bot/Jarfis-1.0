@@ -134,10 +134,15 @@
             z-index: 4;
         }
 
-        /* --- Кнопка и Панель Мод Меню --- */
-        #mod-toggle-btn {
+        /* --- Абсолютный слой для Мод Меню --- */
+        #mod-container {
             position: absolute;
             top: 60px; left: 15px;
+            z-index: 9999;
+            pointer-events: auto;
+        }
+
+        #mod-toggle-btn {
             background: #a855f7;
             color: #fff;
             border: 2px solid #fff;
@@ -146,24 +151,20 @@
             font-weight: bold;
             font-size: 0.9rem;
             cursor: pointer;
-            z-index: 100;
-            pointer-events: auto;
             box-shadow: 0 0 15px rgba(168, 85, 247, 0.8);
+            display: block;
         }
 
         #mod-menu {
-            position: absolute;
-            top: 110px; left: 15px;
+            margin-top: 10px;
             width: 250px;
-            background: rgba(18, 18, 24, 0.95);
+            background: rgba(18, 18, 24, 0.98);
             border: 2px solid #a855f7;
             border-radius: 12px;
             padding: 16px;
             display: none;
             flex-direction: column;
             gap: 14px;
-            z-index: 100;
-            pointer-events: auto;
             box-shadow: 0 0 25px rgba(0, 0, 0, 0.9);
         }
         #mod-menu h3 {
@@ -282,8 +283,10 @@
         <div id="crosshair"></div>
         <div id="health-hud" class="hud-panel">+ 100</div>
         <div id="score-hud" class="hud-panel">УБИТО: <span id="score">0</span></div>
+    </div>
 
-        <!-- Мод-меню UI -->
+    <!-- Автономный слой для Мод-Меню -->
+    <div id="mod-container">
         <button id="mod-toggle-btn">⚙️ MOD MENU</button>
         <div id="mod-menu">
             <h3>DEV MOD MENU</h3>
@@ -323,7 +326,7 @@
         // Оружие
         let gunGroup, muzzleFlash;
 
-        // Настройки Мод-Меню (по умолчанию все ВЫКЛЮЧЕНО)
+        // Настройки Мод-Меню
         const modSettings = {
             esp: false,
             aim: false,
@@ -415,30 +418,34 @@
         function setupModMenuUI() {
             const modBtn = document.getElementById('mod-toggle-btn');
             const modMenu = document.getElementById('mod-menu');
+            const modContainer = document.getElementById('mod-container');
             const espCheck = document.getElementById('esp-toggle');
             const aimCheck = document.getElementById('aim-toggle');
             const fovSlider = document.getElementById('aim-fov');
             const fovVal = document.getElementById('fov-val');
 
-            // Открытие / Закрытие Мод-меню
+            // Полный перехват событий кликов по элементам Мод-меню
+            ['click', 'mousedown', 'touchstart', 'touchend'].forEach(evt => {
+                modContainer.addEventListener(evt, (e) => e.stopPropagation());
+            });
+
+            // Переключение видимости меню
             modBtn.addEventListener('click', (e) => {
+                e.preventDefault();
                 e.stopPropagation();
+
                 if (modMenu.style.display === 'flex') {
                     modMenu.style.display = 'none';
                     if (!isMobileMode) document.body.requestPointerLock();
                 } else {
                     modMenu.style.display = 'flex';
                     if (!isMobileMode && document.pointerLockElement) {
-                        document.exitPointerLock(); // Освобождаем курсор для ПК
+                        document.exitPointerLock(); // Высвобождение курсора на ПК
                     }
                 }
             });
 
-            // Предотвращаем закрытие при кликах внутри панели
-            modMenu.addEventListener('mousedown', (e) => e.stopPropagation());
-            modMenu.addEventListener('touchstart', (e) => e.stopPropagation());
-
-            // Обработчики включения/выключения функций
+            // Тумблеры и слайдер
             espCheck.addEventListener('change', (e) => modSettings.esp = e.target.checked);
             aimCheck.addEventListener('change', (e) => modSettings.aim = e.target.checked);
             fovSlider.addEventListener('input', (e) => {
