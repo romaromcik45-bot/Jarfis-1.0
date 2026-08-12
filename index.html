@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Standoff 2 - Sandstone M9 & Shop Update</title>
+    <title>Standoff 2 - Smooth M9 & Reload System</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         * {
@@ -68,7 +68,14 @@
         }
         #health-hud { left: 15px; color: #2a9d8f; }
         #money-hud { left: 140px; color: #2ec4b6; }
-        #score-hud { left: 265px; color: #f4a261; }
+        #ammo-hud { left: 265px; color: #e76f51; }
+        #score-hud { left: 410px; color: #f4a261; }
+
+        #fps-hud {
+            position: absolute; top: 15px; left: 535px;
+            color: #00ff66; border-color: rgba(0, 255, 102, 0.4);
+            display: none;
+        }
 
         #top-controls {
             position: absolute; top: 15px; right: 15px;
@@ -101,7 +108,7 @@
             pointer-events: none; z-index: 5;
         }
 
-        /* --- МАГАЗИН ОРУЖИЯ (BUY MENU) --- */
+        /* --- МАГАЗИН ОРУЖИЯ --- */
         #shop-modal {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(10, 6, 4, 0.88); z-index: 1500; display: none;
@@ -191,8 +198,8 @@
         #fire-btn { bottom: 50px; right: 40px; width: 85px; height: 85px; background: rgba(230, 57, 70, 0.85); font-size: 0.9rem; }
         #jump-btn { bottom: 150px; right: 45px; width: 65px; height: 65px; background: rgba(42, 157, 143, 0.85); font-size: 0.75rem; }
         #crouch-btn { bottom: 50px; right: 140px; width: 65px; height: 65px; background: rgba(233, 196, 106, 0.85); color: #170d08; font-size: 0.75rem; }
+        #reload-btn { bottom: 225px; right: 150px; width: 60px; height: 60px; background: rgba(231, 111, 81, 0.85); font-size: 0.65rem; text-align: center; }
         #weapon-btn { bottom: 150px; right: 130px; width: 65px; height: 65px; background: rgba(142, 36, 170, 0.85); font-size: 0.7rem; text-align: center; }
-        #inspect-btn { bottom: 225px; right: 85px; width: 55px; height: 55px; background: rgba(244, 162, 97, 0.85); font-size: 0.65rem; text-align: center; }
         #touch-look-zone { position: absolute; top: 0; right: 0; width: 50%; height: 100%; pointer-events: auto; }
 
         #hud-edit-banner {
@@ -207,7 +214,7 @@
     <div id="menu-screen">
         <div class="header">
             <h1>SANDSTONE M9 BAYONET</h1>
-            <p>Новый M9 Scratch + Магазин Оружия + AI Боты</p>
+            <p>Плавно Крутящийся M9 + Перезарядка & Осмотр (R)</p>
         </div>
         <button class="btn" id="start-pc">Играть на ПК (Мышь)</button>
         <button class="btn btn-sec" id="start-mobile">Играть на Телефоне (Сенсор)</button>
@@ -221,7 +228,9 @@
         <div id="crosshair"></div>
         <div id="health-hud" class="hud-panel">+ 100</div>
         <div id="money-hud" class="hud-panel">$ <span id="player-money">1600</span></div>
+        <div id="ammo-hud" class="hud-panel">🔫 <span id="ammo-clip">30</span> / <span id="ammo-reserve">90</span></div>
         <div id="score-hud" class="hud-panel">УБИТО: <span id="score">0</span></div>
+        <div id="fps-hud" class="hud-panel">FPS: <span id="fps-val">60</span></div>
         <div id="killfeed"></div>
         <div id="top-controls">
             <button class="icon-btn" id="open-shop-btn">🛒 МАГАЗИН (B)</button>
@@ -229,7 +238,7 @@
         </div>
     </div>
 
-    <!-- МОДАЛЬНОЕ ОКНО МАГАЗИНА -->
+    <!-- МАГАЗИН -->
     <div id="shop-modal">
         <div id="shop-container">
             <div id="shop-header">
@@ -264,6 +273,10 @@
             <span id="mod-collapse-btn" style="cursor:pointer; font-size:0.8rem;">[–]</span>
         </div>
         <div id="mod-menu">
+            <h3>⚡ FPS & OPTIMIZATION</h3>
+            <label class="mod-option"><span>Show FPS</span><input type="checkbox" id="fps-toggle"></label>
+            <label class="mod-option"><span>Disable Shadows (Boost)</span><input type="checkbox" id="shadows-toggle"></label>
+
             <h3>🎯 AIMBOT & FOV CIRCLE</h3>
             <label class="mod-option"><span>AimBot</span><input type="checkbox" id="aim-toggle"></label>
             <label class="mod-option"><span>Draw FOV Circle</span><input type="checkbox" id="fov-draw-toggle" checked></label>
@@ -293,12 +306,12 @@
         <div id="fire-btn" class="hud-element action-btn" data-id="fire">ОГОНЬ</div>
         <div id="jump-btn" class="hud-element action-btn" data-id="jump">ПРЫЖОК</div>
         <div id="crouch-btn" class="hud-element action-btn" data-id="crouch">ПРИСЕД</div>
+        <div id="reload-btn" class="hud-element action-btn" data-id="reload">RELOAD (R)</div>
         <div id="weapon-btn" class="hud-element action-btn" data-id="weapon">GUN / KNIFE</div>
-        <div id="inspect-btn" class="hud-element action-btn" data-id="inspect">INSPECT (F)</div>
     </div>
 
     <script>
-        let scene, camera, renderer;
+        let scene, camera, renderer, sunLight;
         let targets = [], obstacles = [];
         let score = 0, playerMoney = 1600;
         let isGameActive = false, isMobileMode = false, isHudEditing = false, isShopOpen = false;
@@ -313,26 +326,33 @@
         let currentCamHeight = 1.7;
 
         let currentWeapon = 'm4a1';
-        let handsGunGroup, m9KnifeGroup, m9BladeMesh, muzzleFlash, recoilOffset = 0;
+        let handsGunGroup, m9KnifeGroup, m9PivotGroup, muzzleFlash, recoilOffset = 0;
         let handsBasePos = new THREE.Vector3(0.18, -0.22, -0.38);
-        let m9BasePos = new THREE.Vector3(0.2, -0.22, -0.35);
+        let m9BasePos = new THREE.Vector3(0.18, -0.2, -0.35);
         let isFiring = false, lastShotTime = 0, baseFireInterval = 130;
+
+        // ПАПАТРОНЫ И ПЕРЕЗАРЯДКА
+        let ammoInClip = 30, maxClipSize = 30, ammoReserve = 90;
+        let isReloading = false, isInspecting = false;
+        let inspectProgress = 0;
 
         // Анимация вращения M9
         let isSpinningM9 = false, spinProgress = 0;
 
-        // Точки Спавнов
-        const ctSpawnPos = new THREE.Vector3(70, 1.7, 0); // КТ база
-        const tSpawnPos = new THREE.Vector3(-85, 0, 0);   // Т база
+        const ctSpawnPos = new THREE.Vector3(70, 1.7, 0);
+        const tSpawnPos = new THREE.Vector3(-85, 0, 0);
 
         let audioCtx, masterVolume = 0.8;
 
         const modSettings = {
+            showFps: false, disableShadows: false,
             aim: false, drawFov: true, fovRadius: 120,
             esp: true, hp: true, tracers: false,
             fly: false, jump: false, night: false
         };
         let espCanvas, espCtx;
+
+        let frameCount = 0, lastFpsTime = performance.now();
 
         function init() {
             scene = new THREE.Scene();
@@ -358,20 +378,17 @@
             const hemiLight = new THREE.HemisphereLight(0xfff5ea, 0x8d6e63, 0.65);
             scene.add(hemiLight);
 
-            const sunLight = new THREE.DirectionalLight(0xfff1e0, 1.6);
+            sunLight = new THREE.DirectionalLight(0xfff1e0, 1.6);
             sunLight.position.set(60, 90, 45);
             sunLight.castShadow = true;
             sunLight.shadow.mapSize.width = 2048; sunLight.shadow.mapSize.height = 2048;
             sunLight.shadow.camera.near = 0.5; sunLight.shadow.camera.far = 300;
-            sunLight.shadow.camera.left = -120; sunLight.shadow.camera.right = 120;
-            sunLight.shadow.camera.top = 120; sunLight.shadow.camera.bottom = -120;
             scene.add(sunLight);
 
             createSandstoneMap();
             createM4A1WithHands();
             createM9Bayonet();
 
-            // Порождаем 8 врагов-террористов на их базе и в ключевых точках
             for (let i = 0; i < 8; i++) spawnTarget();
 
             window.addEventListener('resize', onWindowResize);
@@ -401,24 +418,30 @@
 
             document.getElementById('open-shop-btn').addEventListener('click', toggleShop);
             document.getElementById('close-shop-btn').addEventListener('click', toggleShop);
-            document.getElementById('inspect-btn').addEventListener('click', triggerM9Spin);
+            document.getElementById('reload-btn').addEventListener('click', handleReloadOrInspect);
 
             setupModMenuDrag();
             setupHudEditor();
             setupModMenuLogic();
             setupTouchControls();
+            updateAmmoHUD();
             animate(0);
         }
 
-        // --- СОЗДАНИЕ КАРТЫ SANDSTONE ---
+        function updateAmmoHUD() {
+            if (currentWeapon === 'm9') {
+                document.getElementById('ammo-hud').innerText = '🗡️ M9 BAYONET';
+            } else {
+                document.getElementById('ammo-hud').innerHTML = `🔫 <span id="ammo-clip">${ammoInClip}</span> / <span id="ammo-reserve">${ammoReserve}</span>`;
+            }
+        }
+
         function createSandstoneMap() {
             obstacles = [];
             const sandMat = new THREE.MeshStandardMaterial({ color: 0xdca876, roughness: 0.95, metalness: 0.05 });
             const wallMat = new THREE.MeshStandardMaterial({ color: 0xcb9868, roughness: 0.85, metalness: 0.1 });
             const wallDarkMat = new THREE.MeshStandardMaterial({ color: 0xaa784a, roughness: 0.8, metalness: 0.1 });
             const crateMat = new THREE.MeshStandardMaterial({ color: 0x734a28, roughness: 0.5, metalness: 0.2 });
-            const plantAMat = new THREE.MeshStandardMaterial({ color: 0x9e2b47, roughness: 0.4, metalness: 0.3 });
-            const plantBMat = new THREE.MeshStandardMaterial({ color: 0x2e6698, roughness: 0.4, metalness: 0.3 });
 
             const floor = new THREE.Mesh(new THREE.PlaneGeometry(300, 300), sandMat);
             floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
@@ -427,34 +450,13 @@
                 const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
                 mesh.position.set(x, h / 2, z);
                 mesh.castShadow = true; mesh.receiveShadow = true;
-                scene.add(mesh);
-                obstacles.push(mesh);
-                return mesh;
+                scene.add(mesh); obstacles.push(mesh);
             }
 
-            // Границы
             addStructure(0, -110, 220, 4, 16); addStructure(0, 110, 220, 4, 16);
             addStructure(-110, 0, 4, 220, 16); addStructure(110, 0, 4, 220, 16);
-
-            // Т и КТ спавны
-            addStructure(-95, 0, 20, 30, 12, wallDarkMat);
-            addStructure(75, 0, 20, 40, 12, wallDarkMat);
-
-            // Мид & Арка
+            addStructure(-95, 0, 20, 30, 12, wallDarkMat); addStructure(75, 0, 20, 40, 12, wallDarkMat);
             addStructure(-30, -15, 25, 30, 14); addStructure(-20, 25, 20, 25, 14); addStructure(20, -10, 25, 45, 14);
-            const archRoof = new THREE.Mesh(new THREE.BoxGeometry(16, 4, 10), wallMat);
-            archRoof.position.set(-10, 10, 5); archRoof.castShadow = true; scene.add(archRoof); obstacles.push(archRoof);
-
-            // Пленты
-            const plantAFloor = new THREE.Mesh(new THREE.BoxGeometry(30, 0.2, 30), plantAMat);
-            plantAFloor.position.set(50, 0.1, -65); plantAFloor.receiveShadow = true; scene.add(plantAFloor);
-            addStructure(50, -82, 35, 4, 12); addStructure(67, -65, 4, 30, 12);
-            addStructure(48, -60, 4, 4, 4, crateMat); addStructure(52, -60, 4, 4, 4, crateMat);
-
-            const plantBFloor = new THREE.Mesh(new THREE.BoxGeometry(28, 0.2, 28), plantBMat);
-            plantBFloor.position.set(35, 0.1, 70); plantBFloor.receiveShadow = true; scene.add(plantBFloor);
-            addStructure(35, 86, 32, 4, 12); addStructure(51, 70, 4, 28, 12);
-            addStructure(32, 66, 5, 5, 4, crateMat);
         }
 
         function createM4A1WithHands() {
@@ -484,14 +486,13 @@
             camera.add(handsGunGroup);
         }
 
-        // --- ПРОРАБОТАННАЯ МОДЕЛЬ M9 BAYONET СО СКИНОМ SCRATCH ---
         function createM9Bayonet() {
             m9KnifeGroup = new THREE.Group();
+            m9PivotGroup = new THREE.Group(); // Pivot Точка (Кольцо) для плавной крутки
 
             const handleMat = new THREE.MeshStandardMaterial({ color: 0x111315, roughness: 0.6 });
             const ringMat = new THREE.MeshStandardMaterial({ color: 0x22252a, metalness: 0.8, roughness: 0.3 });
 
-            // Текстурный клинок с сине-фиолетово-розовым градиентом
             const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 256;
             const ctx = canvas.getContext('2d');
             const grad = ctx.createLinearGradient(0, 0, 256, 256);
@@ -509,69 +510,99 @@
             const m9Texture = new THREE.CanvasTexture(canvas);
             const bladeMat = new THREE.MeshStandardMaterial({ map: m9Texture, metalness: 0.9, roughness: 0.2 });
 
-            const m9Model = new THREE.Group();
+            const m9Mesh = new THREE.Group();
 
-            // Рукоять
             const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.02, 0.18, 12), handleMat);
             handle.position.y = -0.09;
 
-            // Гарда и кольцо
             const guard = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.015, 0.09), ringMat);
             guard.position.y = 0.005;
+
             const ring = new THREE.Mesh(new THREE.TorusGeometry(0.02, 0.005, 8, 16), ringMat);
             ring.rotation.x = Math.PI / 2; ring.position.set(0, 0.02, 0.035);
 
-            // Лезвие M9
-            const bladeGeo = new THREE.BoxGeometry(0.01, 0.26, 0.05);
-            m9BladeMesh = new THREE.Mesh(bladeGeo, bladeMat);
-            m9BladeMesh.position.set(0, 0.13, -0.005);
+            const bladeGeo = new THREE.BoxGeometry(0.008, 0.26, 0.045);
+            const blade = new THREE.Mesh(bladeGeo, bladeMat);
+            blade.position.set(0, 0.13, -0.005);
 
-            // Зубцы на обухе
             for (let i = 0; i < 6; i++) {
-                const tooth = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.015, 0.015), bladeMat);
+                const tooth = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.015, 0.015), bladeMat);
                 tooth.position.set(0, 0.04 + i * 0.03, -0.028);
-                m9Model.add(tooth);
+                m9Mesh.add(tooth);
             }
 
-            // Рука игрока
+            m9Mesh.add(handle, guard, ring, blade);
+            
+            // Центрируем нож относительно кольца
+            m9Mesh.position.set(0, -0.02, -0.035);
+            m9PivotGroup.add(m9Mesh);
+
             const handMat = new THREE.MeshStandardMaterial({ color: 0x2b2d30, roughness: 0.7 });
             const handR = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.04, 0.35, 8), handMat);
-            handR.rotation.x = Math.PI / 3; handR.position.set(0.05, -0.15, 0.05);
+            handR.rotation.x = Math.PI / 3; handR.position.set(0.04, -0.16, 0.04);
 
-            m9Model.add(handle, guard, ring, m9BladeMesh, handR);
-            m9Model.rotation.x = Math.PI / 2; // Лезвием вперёд
-
-            m9KnifeGroup.add(m9Model);
+            m9KnifeGroup.add(m9PivotGroup, handR);
             m9KnifeGroup.position.copy(m9BasePos);
             m9KnifeGroup.visible = false;
             camera.add(m9KnifeGroup);
         }
 
-        function triggerM9Spin() {
-            if (currentWeapon === 'm9' && !isSpinningM9) {
-                isSpinningM9 = true; spinProgress = 0;
+        // ОБРАБОТКА НАЖАТИЯ R ИЛИ КНОПКИ ПЕРЕЗАРЯДКИ
+        function handleReloadOrInspect() {
+            if (currentWeapon === 'm9') {
+                if (!isSpinningM9) {
+                    isSpinningM9 = true;
+                    spinProgress = 0;
+                }
+            } else {
+                if (ammoInClip < maxClipSize && ammoReserve > 0) {
+                    if (!isReloading) reloadWeapon();
+                } else {
+                    if (!isInspecting && !isReloading) {
+                        isInspecting = true;
+                        inspectProgress = 0;
+                    }
+                }
             }
         }
 
+        function reloadWeapon() {
+            isReloading = true;
+            document.getElementById('reload-btn').innerText = '...';
+            
+            setTimeout(() => {
+                const needed = maxClipSize - ammoInClip;
+                const toAdd = Math.min(needed, ammoReserve);
+                ammoInClip += toAdd;
+                ammoReserve -= toAdd;
+                updateAmmoHUD();
+                isReloading = false;
+                document.getElementById('reload-btn').innerText = 'RELOAD (R)';
+            }, 1800);
+        }
+
         function switchWeapon() {
+            if (isReloading) return;
             if (currentWeapon === 'm4a1') {
                 currentWeapon = 'm9';
                 handsGunGroup.visible = false;
                 m9KnifeGroup.visible = true;
                 document.getElementById('weapon-btn').innerText = 'M9 BAYONET';
-                triggerM9Spin();
+                handleReloadOrInspect();
             } else {
                 currentWeapon = 'm4a1';
                 handsGunGroup.visible = true;
                 m9KnifeGroup.visible = false;
                 document.getElementById('weapon-btn').innerText = 'GUN';
             }
+            updateAmmoHUD();
         }
 
         function buyWeapon(gun, price) {
             if (playerMoney >= price) {
                 playerMoney -= price;
                 document.getElementById('player-money').innerText = playerMoney;
+                ammoInClip = 30; ammoReserve = 90; updateAmmoHUD();
                 alert(`Оружие ${gun.toUpperCase()} куплено!`);
                 toggleShop();
             } else {
@@ -586,8 +617,8 @@
         }
 
         function attackKnife() {
+            if (isSpinningM9) return;
             m9KnifeGroup.position.z = -0.22;
-            triggerM9Spin();
             setTimeout(() => { m9KnifeGroup.position.z = m9BasePos.z; }, 120);
 
             const raycaster = new THREE.Raycaster();
@@ -602,11 +633,10 @@
             }
         }
 
-        // --- СПАВН ТЕРРОРИСТОВ С УМНЫМ ИИ ---
         function spawnTarget() {
             const human = new THREE.Group();
             const skinMat = new THREE.MeshStandardMaterial({ color: 0xd2a379, roughness: 0.6 });
-            const suitMat = new THREE.MeshStandardMaterial({ color: 0xc85a32, roughness: 0.5 }); // Красная форма Террористов
+            const suitMat = new THREE.MeshStandardMaterial({ color: 0xc85a32, roughness: 0.5 });
 
             const head = new THREE.Mesh(new THREE.SphereGeometry(0.24, 12, 12), skinMat); head.position.y = 1.62; head.name = "head"; head.castShadow = true;
             const torso = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.65, 0.28), suitMat); torso.position.y = 1.15; torso.name = "torso"; torso.castShadow = true;
@@ -615,7 +645,6 @@
 
             human.add(head, torso, legL, legR);
 
-            // Случайный спавн около базы Т
             let posX = tSpawnPos.x + (Math.random() - 0.5) * 20;
             let posZ = tSpawnPos.z + (Math.random() - 0.5) * 30;
 
@@ -629,7 +658,16 @@
         }
 
         function shoot() {
-            if (currentWeapon === 'm9') return;
+            if (currentWeapon === 'm9' || isReloading) return;
+
+            if (ammoInClip <= 0) {
+                handleReloadOrInspect();
+                return;
+            }
+
+            ammoInClip--;
+            updateAmmoHUD();
+
             recoilOffset = 0.06;
             muzzleFlash.material.opacity = 1;
             setTimeout(() => { muzzleFlash.material.opacity = 0; }, 30);
@@ -675,8 +713,7 @@
 
             header.addEventListener('pointerdown', (e) => {
                 if (e.target === collapseBtn) return;
-                isDragging = true;
-                startX = e.clientX; startY = e.clientY;
+                isDragging = true; startX = e.clientX; startY = e.clientY;
                 const rect = container.getBoundingClientRect();
                 initialLeft = rect.left; initialTop = rect.top;
                 header.setPointerCapture(e.pointerId);
@@ -770,6 +807,24 @@
             const bindCheck = (id, key) => {
                 document.getElementById(id).addEventListener('change', (e) => modSettings[key] = e.target.checked);
             };
+
+            document.getElementById('fps-toggle').addEventListener('change', (e) => {
+                modSettings.showFps = e.target.checked;
+                document.getElementById('fps-hud').style.display = modSettings.showFps ? 'block' : 'none';
+            });
+
+            document.getElementById('shadows-toggle').addEventListener('change', (e) => {
+                modSettings.disableShadows = e.target.checked;
+                renderer.shadowMap.enabled = !modSettings.disableShadows;
+                sunLight.castShadow = !modSettings.disableShadows;
+                scene.traverse((obj) => {
+                    if (obj.isMesh) {
+                        obj.castShadow = !modSettings.disableShadows;
+                        obj.receiveShadow = !modSettings.disableShadows;
+                    }
+                });
+            });
+
             bindCheck('aim-toggle', 'aim'); bindCheck('fov-draw-toggle', 'drawFov');
             bindCheck('esp-toggle', 'esp'); bindCheck('hp-toggle', 'hp');
             bindCheck('tracers-toggle', 'tracers'); bindCheck('fly-toggle', 'fly'); bindCheck('jump-toggle', 'jump');
@@ -798,7 +853,7 @@
             document.getElementById('menu-screen').style.display = 'none';
             document.getElementById('game-hud').style.display = 'block';
             if (isMobileMode) document.getElementById('touch-controls').style.display = 'block';
-            camera.position.copy(ctSpawnPos); // Спавн КТ
+            camera.position.copy(ctSpawnPos);
         }
 
         const keys = {};
@@ -811,8 +866,8 @@
                     else isCrouching = true;
                 }
                 if (e.code === 'KeyE') switchWeapon();
+                if (e.code === 'KeyR') handleReloadOrInspect();
                 if (e.code === 'KeyB') toggleShop();
-                if (e.code === 'KeyF') triggerM9Spin();
                 updateKeyboardMove();
             }
         }
@@ -920,7 +975,6 @@
             weaponBtn.addEventListener('touchstart', (e) => { if (!isHudEditing && !isShopOpen) { e.preventDefault(); switchWeapon(); } });
         }
 
-        // --- ТОЧНЫЕ КОЛЛИЗИИ ДЛЯ ИГРОКА И БОТОВ ---
         function checkCollision(newPosition, radius = 0.8) {
             if (modSettings.fly) return false;
             for (let obstacle of obstacles) {
@@ -932,7 +986,6 @@
             return false;
         }
 
-        // --- ДВИЖЕНИЕ AI БОТОВ С ЗАЩИТОЙ ОТ ПРОХОЖДЕНИЯ СКВОЗЬ СТЕНЫ ---
         function updateBots(delta, time) {
             targets.forEach(target => {
                 const ud = target.userData;
@@ -949,7 +1002,7 @@
                     target.position.copy(nextPos);
                     target.rotation.y = Math.atan2(ud.targetDir.x, ud.targetDir.z);
                 } else {
-                    ud.targetDir.negate(); // Отражаем направление при ударе о стену
+                    ud.targetDir.negate();
                     ud.changeDirTime = time + 1000;
                 }
             });
@@ -1048,12 +1101,23 @@
             }
         }
 
+        function updateFpsCounter(now) {
+            frameCount++;
+            if (now >= lastFpsTime + 1000) {
+                const fps = Math.round((frameCount * 1000) / (now - lastFpsTime));
+                document.getElementById('fps-val').innerText = fps;
+                frameCount = 0; lastFpsTime = now;
+            }
+        }
+
         let prevTime = performance.now();
         function animate(time) {
             requestAnimationFrame(animate);
 
             if (isGameActive) {
                 const delta = Math.min((time - prevTime) / 1000, 0.1);
+
+                if (modSettings.showFps) updateFpsCounter(time);
 
                 const targetCamHeight = isCrouching ? crouchHeight : standHeight;
                 currentCamHeight += (targetCamHeight - currentCamHeight) * 0.2;
@@ -1093,16 +1157,37 @@
                     }
                 }
 
-                // Плавная анимация прокрутки M9 вокруг кольца
+                // ПЛАВНОЕ ВРАЩЕНИЕ M9 BAYONET
                 if (isSpinningM9) {
-                    spinProgress += delta * 7.0;
-                    m9KnifeGroup.children[0].rotation.z = Math.sin(spinProgress) * Math.PI * 2;
-                    m9KnifeGroup.children[0].rotation.y = Math.cos(spinProgress) * 0.5;
+                    spinProgress += delta * 5.5; // Плавная скорость
+                    m9PivotGroup.rotation.x = spinProgress;
                     if (spinProgress >= Math.PI * 2) {
                         isSpinningM9 = false;
-                        m9KnifeGroup.children[0].rotation.z = 0;
-                        m9KnifeGroup.children[0].rotation.y = 0;
+                        spinProgress = 0;
+                        m9PivotGroup.rotation.x = 0;
                     }
+                }
+
+                // АНИМАЦИЯ ОСМОТРА ОРУЖИЯ (M4A1)
+                if (isInspecting && currentWeapon === 'm4a1') {
+                    inspectProgress += delta * 3.0;
+                    handsGunGroup.rotation.y = Math.sin(inspectProgress) * 0.35;
+                    handsGunGroup.rotation.z = Math.cos(inspectProgress) * 0.2;
+                    if (inspectProgress >= Math.PI * 2) {
+                        isInspecting = false;
+                        inspectProgress = 0;
+                        handsGunGroup.rotation.y = 0;
+                        handsGunGroup.rotation.z = 0;
+                    }
+                }
+
+                // АНИМАЦИЯ ПЕРЕЗАРЯДКИ (M4A1)
+                if (isReloading && currentWeapon === 'm4a1') {
+                    handsGunGroup.position.y = handsBasePos.y - Math.sin(time * 0.005) * 0.08;
+                    handsGunGroup.rotation.x = -0.3;
+                } else if (!isInspecting) {
+                    handsGunGroup.position.y = handsBasePos.y;
+                    handsGunGroup.rotation.x = 0;
                 }
 
                 recoilOffset += (0 - recoilOffset) * 0.18;
