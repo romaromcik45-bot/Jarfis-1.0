@@ -304,11 +304,10 @@
             touchControls.style.display = 'none';
         }
 
-        // --- Создание карты и объектов физики ---
+        // --- Карта ---
         function createMap() {
             obstacles = [];
 
-            // Пол
             const floor = new THREE.Mesh(
                 new THREE.PlaneGeometry(80, 80),
                 new THREE.MeshStandardMaterial({ color: 0x2c2c34 })
@@ -317,7 +316,6 @@
             floor.receiveShadow = true;
             scene.add(floor);
 
-            // Стены периметра (добавлены в массив obstacles для коллизий)
             const wallMat = new THREE.MeshStandardMaterial({ color: 0x3f3f4c });
             const wallGeo1 = new THREE.BoxGeometry(80, 10, 2);
             const wallGeo2 = new THREE.BoxGeometry(2, 10, 80);
@@ -332,7 +330,6 @@
                 obstacles.push(wall);
             });
 
-            // Укрытия (Ящики)
             const boxGeo = new THREE.BoxGeometry(4, 4, 4);
             const boxMat = new THREE.MeshStandardMaterial({ color: 0xd97706 });
             [[-10, 2, -10], [10, 2, -15], [-5, 2, 10], [15, 2, 5]].forEach(pos => {
@@ -420,7 +417,7 @@
             camera.rotation.x = pitch;
         }
 
-        // --- Сенсорный джойстик (Исправленная логика осей) ---
+        // --- Сенсорный джойстик (Точное направление) ---
         function setupTouchControls() {
             const joystickZone = document.getElementById('joystick-zone');
             const stick = document.getElementById('joystick-stick');
@@ -483,8 +480,7 @@
                 stick.style.left = `${40 + stickX}px`;
                 stick.style.top = `${40 + stickY}px`;
 
-                // Тянем ВВЕРХ (dy < 0) -> Вперед (forward > 0)
-                // Тянем ВПРАВО (dx > 0) -> Вправо (right > 0)
+                // Вверх: forward > 0, Вправо: right > 0, Влево: right < 0
                 moveState.forward = -stickY / 45;
                 moveState.right = stickX / 45;
             }
@@ -502,20 +498,17 @@
             });
         }
 
-        // --- Функция проверки столкновений со стенами ---
+        // --- Столкновения со стенами ---
         function checkCollision(newPosition) {
-            const playerRadius = 1.0; // Радиус хитбокса игрока
+            const playerRadius = 1.0;
             
             for (let obstacle of obstacles) {
                 const box = new THREE.Box3().setFromObject(obstacle);
-                
-                // Проверяем дистанцию до границ препятствий
                 const closestPoint = new THREE.Vector3();
                 box.clampPoint(newPosition, closestPoint);
                 
-                const distance = newPosition.distanceTo(closestPoint);
-                if (distance < playerRadius) {
-                    return true; // Есть столкновение
+                if (newPosition.distanceTo(closestPoint) < playerRadius) {
+                    return true;
                 }
             }
             return false;
@@ -527,7 +520,7 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         }
 
-        // --- Главный игровой цикл ---
+        // --- Игровой цикл ---
         let prevTime = performance.now();
         function animate(time) {
             requestAnimationFrame(animate);
@@ -537,28 +530,28 @@
 
                 gunGroup.position.z += (-0.5 - gunGroup.position.z) * 0.1;
 
-                // Вычисление предполагаемого вектора смещения
                 const moveVector = new THREE.Vector3();
                 
+                // Вперед / Назад
                 if (Math.abs(moveState.forward) > 0.05) {
                     const dir = new THREE.Vector3();
                     camera.getWorldDirection(dir);
-                    dir.y = 0; // Игнорируем наклон камеры вверх/вниз для ходьбы
+                    dir.y = 0;
                     dir.normalize();
                     moveVector.addScaledVector(dir, moveState.forward * speed * delta);
                 }
                 
+                // Вправо / Влево (исправлен вектор направления)
                 if (Math.abs(moveState.right) > 0.05) {
                     const dir = new THREE.Vector3();
                     camera.getWorldDirection(dir);
                     dir.y = 0;
                     dir.normalize();
-                    dir.cross(new THREE.Vector3(0, 1, 0)); // Перпендикулярный вектор (вправо)
-                    dir.negate();
-                    moveVector.addScaledVector(dir, moveState.right * speed * delta);
+                    dir.cross(new THREE.Vector3(0, 1, 0)); // Получаем право
+                    moveVector.addScaledVector(dir, -moveState.right * speed * delta);
                 }
 
-                // Попытка передвижения X и Z отдельно для скольжения вдоль стен
+                // Движение с учетом стен
                 const nextPositionX = camera.position.clone().add(new THREE.Vector3(moveVector.x, 0, 0));
                 if (!checkCollision(nextPositionX)) {
                     camera.position.x = nextPositionX.x;
@@ -569,7 +562,7 @@
                     camera.position.z = nextPositionZ.z;
                 }
 
-                camera.position.y = 1.7; // Фиксированная высота игрока
+                camera.position.y = 1.7;
             }
 
             prevTime = time;
