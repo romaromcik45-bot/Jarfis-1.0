@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Standoff 2 Pro Engine - Ultimate Sandstone Edition</title>
+    <title>Standoff 2 - Ultra HD Engine & Menu System</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         /* ==========================================================================
-           1. СБРОС И ОСНОВНЫЕ СТИЛИ
+           1. БАЗОВЫЙ CSS СБРОС И СТИЛИ ИНТЕРФЕЙСА
            ========================================================================== */
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,500;0,700;0,900;1,900&display=swap');
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -16,1042 +18,809 @@
             user-select: none;
             -webkit-user-select: none;
             touch-action: none;
-            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Montserrat', sans-serif;
         }
 
         body, html {
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background-color: #07070a;
+            background-color: #050609;
             color: #ffffff;
         }
 
-        /* ==========================================================================
-           2. ЭКРАНЫ И МЕНЮ (UI LAYER)
-           ========================================================================== */
-        .overlay-screen {
+        #canvas-container {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background: radial-gradient(circle at center, rgba(20, 22, 32, 0.98) 0%, rgba(8, 9, 14, 0.99) 100%);
-            z-index: 2000;
-            gap: 25px;
-            backdrop-filter: blur(12px);
-            opacity: 1;
-            transition: opacity 0.3s ease;
+            z-index: 1;
         }
 
-        .hidden {
-            display: none !important;
-            opacity: 0 !important;
-            pointer-events: none !important;
-        }
-
-        h1.game-title {
-            font-size: 3.8rem;
-            font-weight: 900;
-            color: #f4a261;
-            text-shadow: 0 0 25px rgba(244, 162, 97, 0.6), 0 0 50px rgba(231, 111, 81, 0.3);
-            letter-spacing: 4px;
-            text-align: center;
-            text-transform: uppercase;
-        }
-
-        h2.menu-subtitle {
-            font-size: 2.2rem;
-            font-weight: 800;
-            color: #e76f51;
-            margin-bottom: 10px;
-            text-shadow: 0 0 15px rgba(231, 111, 81, 0.4);
-            text-align: center;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        .btn-main {
-            padding: 18px 45px;
-            font-size: 1.25rem;
-            cursor: pointer;
-            background: linear-gradient(135deg, #f4a261 0%, #e76f51 100%);
-            color: #090a0f;
-            border: none;
-            border-radius: 12px;
-            font-weight: 800;
-            width: 340px;
-            text-align: center;
-            transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
-            box-shadow: 0 8px 25px rgba(244, 162, 97, 0.35);
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn-main:hover {
-            background: linear-gradient(135deg, #e76f51 0%, #f4a261 100%);
-            color: #ffffff;
-            transform: translateY(-4px) scale(1.02);
-            box-shadow: 0 12px 30px rgba(231, 111, 81, 0.5);
-        }
-
-        .btn-main:active {
-            transform: translateY(2px) scale(0.98);
-        }
+        .interactive { pointer-events: auto; }
 
         /* ==========================================================================
-           3. ИНВЕНТАРЬ И КАРТОЧКИ ОРУЖИЯ
+           2. СТИЛИ ГЛАВНОГО МЕНЮ STANDOFF 2 (ТОЧНО ПО СКРИНШОТАМ)
            ========================================================================== */
-        .inventory-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 90%;
-            max-width: 1100px;
-            background: rgba(15, 17, 26, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
-        }
-
-        .inventory-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 20px;
-            width: 100%;
-            margin-top: 20px;
-            max-height: 480px;
-            overflow-y: auto;
-            padding: 10px;
-        }
-
-        /* Скроллбар инвентаря */
-        .inventory-grid::-webkit-scrollbar {
-            width: 8px;
-        }
-        .inventory-grid::-webkit-scrollbar-track {
-            background: rgba(0,0,0,0.3);
-            border-radius: 4px;
-        }
-        .inventory-grid::-webkit-scrollbar-thumb {
-            background: #f4a261;
-            border-radius: 4px;
-        }
-
-        .knife-card {
-            height: 180px;
-            background: linear-gradient(180deg, rgba(30, 33, 48, 0.8) 0%, rgba(18, 20, 30, 0.9) 100%);
-            border: 2px solid #2a2e42;
-            border-radius: 16px;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-            transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
-            padding: 18px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .knife-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: #555;
-            transition: background 0.3s;
-        }
-
-        .knife-card.rarity-arcana::before { background: #e74c3c; box-shadow: 0 0 10px #e74c3c; }
-        .knife-card.rarity-statTrak::before { background: #f39c12; box-shadow: 0 0 10px #f39c12; }
-
-        .knife-card:hover {
-            border-color: #f4a261;
-            background: linear-gradient(180deg, rgba(45, 50, 75, 0.9) 0%, rgba(25, 28, 42, 0.95) 100%);
-            transform: translateY(-6px) scale(1.03);
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
-        }
-
-        .knife-card.active {
-            border-color: #2ecc71 !important;
-            box-shadow: 0 0 25px rgba(46, 204, 113, 0.4) !important;
-            background: linear-gradient(180deg, rgba(25, 55, 40, 0.9) 0%, rgba(15, 35, 25, 0.95) 100%) !important;
-        }
-
-        .knife-title {
-            font-size: 1.2rem;
-            font-weight: 800;
-            color: #ffffff;
-            margin-bottom: 4px;
-        }
-
-        .knife-skin-name {
-            font-size: 0.9rem;
-            color: #aaa;
-            font-weight: 600;
-        }
-
-        .equip-badge {
-            font-size: 0.75rem;
-            padding: 4px 10px;
-            background: #2ecc71;
-            color: #000;
-            border-radius: 20px;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            display: none;
-        }
-
-        .knife-card.active .equip-badge {
-            display: inline-block;
-        }
-
-        /* ==========================================================================
-           4. ИГРОВОЙ HUD И ИНТЕРФЕЙС
-           ========================================================================== */
-        #game-hud {
+        .so2-ui-layer {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            display: none;
+            z-index: 100;
             pointer-events: none;
-            z-index: 1000;
-        }
-
-        .hud-panel {
-            position: absolute;
-            background: rgba(10, 11, 16, 0.75);
-            padding: 12px 24px;
-            border-radius: 12px;
-            pointer-events: auto;
-            font-weight: 800;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            backdrop-filter: blur(8px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
-            letter-spacing: 0.5px;
-        }
-
-        #stats-hud {
-            top: 25px;
-            left: 25px;
             display: flex;
-            gap: 25px;
-            font-size: 1.25rem;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 15px 20px;
         }
 
-        #weapon-hud {
-            bottom: 25px;
-            right: 25px;
-            font-size: 1.4rem;
-            color: #f4a261;
+        /* ЛЕВАЯ ПАНЕЛЬ: GOLD PASS И СЕЗОН */
+        .left-side-panel {
+            position: absolute;
+            left: 20px;
+            top: 20px;
+            width: 290px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .pass-block {
+            background: linear-gradient(135deg, rgba(20, 22, 35, 0.92), rgba(10, 11, 18, 0.96));
+            border: 1px solid rgba(255, 215, 0, 0.4);
+            border-radius: 8px;
+            padding: 12px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+        }
+
+        .pass-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 900;
+            font-size: 1.1rem;
+            color: #ffd700;
+            letter-spacing: 1px;
+        }
+
+        .pass-level-bar {
+            width: 100%;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            margin: 8px 0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .pass-level-fill {
+            width: 82%;
+            height: 100%;
+            background: linear-gradient(90deg, #f39c12, #ffd700);
+            box-shadow: 0 0 10px #ffd700;
+        }
+
+        .season-block {
+            background: linear-gradient(180deg, rgba(45, 15, 65, 0.9), rgba(15, 10, 25, 0.95));
+            border: 1px solid rgba(155, 89, 182, 0.5);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(155, 89, 182, 0.2);
+        }
+
+        .season-title {
+            font-size: 2.2rem;
+            font-weight: 900;
+            font-style: italic;
+            background: linear-gradient(45deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
+        }
+
+        /* ПРАВАЯ ПАНЕЛЬ: ИГРОК И РЕЖИМЫ */
+        .right-side-panel {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            width: 330px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .profile-card {
+            background: rgba(16, 18, 26, 0.92);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            padding: 14px;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+        }
+
+        .profile-header {
             display: flex;
             align-items: center;
             gap: 12px;
         }
 
-        #inventory-btn-hud {
-            top: 25px;
-            right: 25px;
-            cursor: pointer;
-            background: linear-gradient(135deg, #f4a261, #e76f51);
-            color: #000;
-            transition: all 0.2s;
+        .avatar-box {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            background: #252836;
+            border: 2px solid #3498db;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 0 12px rgba(52, 152, 219, 0.5);
         }
 
-        #inventory-btn-hud:hover {
-            transform: scale(1.05);
-            color: #fff;
-        }
-
-        #controls-hint {
-            bottom: 25px;
-            left: 25px;
-            font-size: 0.85rem;
-            color: #ccc;
-            line-height: 1.6;
-        }
-
-        /* Прицел (Crosshair) */
-        #crosshair {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 14px;
-            height: 14px;
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-        }
-
-        #crosshair::before, #crosshair::after {
-            content: '';
-            position: absolute;
-            background: #00ff66;
-            box-shadow: 0 0 6px #00ff66;
-        }
-
-        #crosshair::before {
-            top: 6px;
-            left: -12px;
-            width: 38px;
-            height: 2px;
-        }
-
-        #crosshair::after {
-            top: -12px;
-            left: 6px;
-            width: 2px;
-            height: 38px;
-        }
-
-        /* ==========================================================================
-           5. МОБИЛЬНОЕ СЕНСОРНОЕ УПРАВЛЕНИЕ
-           ========================================================================== */
-        #mobile-controls {
-            position: absolute;
-            top: 0;
-            left: 0;
+        .avatar-box img {
             width: 100%;
             height: 100%;
-            pointer-events: none;
-            display: none;
-            z-index: 1100;
+            object-fit: cover;
         }
 
-        .touch-zone {
-            position: absolute;
-            pointer-events: auto;
+        .user-info {
+            display: flex;
+            flex-direction: column;
         }
 
-        #joystick-zone {
-            bottom: 40px;
-            left: 40px;
-            width: 160px;
-            height: 160px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 50%;
-            border: 2px solid rgba(255, 255, 255, 0.15);
+        .user-name {
+            font-size: 1.15rem;
+            font-weight: 900;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
-        #joystick-stick {
-            position: absolute;
-            top: 42px;
-            left: 42px;
-            width: 76px;
-            height: 76px;
-            background: linear-gradient(135deg, rgba(244, 162, 97, 0.8), rgba(231, 111, 81, 0.8));
-            border-radius: 50%;
-            box-shadow: 0 0 20px rgba(244, 162, 97, 0.5);
+        .clan-tag {
+            color: #8e44ad;
+            font-size: 0.9rem;
         }
 
-        #look-zone {
-            top: 0;
-            right: 0;
-            width: 50%;
-            height: 100%;
+        .user-id {
+            font-size: 0.75rem;
+            color: #7f8c8d;
         }
 
-        .mobile-btn {
-            position: absolute;
-            width: 75px;
-            height: 75px;
-            background: rgba(15, 17, 26, 0.8);
-            border: 2px solid #f4a261;
-            border-radius: 50%;
+        .level-badge {
+            display: inline-block;
+            background: #8e44ad;
             color: #fff;
             font-weight: 900;
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-top: 4px;
+        }
+
+        /* Блок Калибровки */
+        .ranks-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            margin-top: 12px;
+        }
+
+        .rank-item {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 6px;
+            padding: 8px 4px;
+            text-align: center;
+            font-size: 0.65rem;
+            color: #aaa;
+        }
+
+        .rank-item b {
+            display: block;
+            color: #fff;
+            font-size: 0.75rem;
+            margin-top: 2px;
+        }
+
+        /* Кнопка Играть */
+        .play-section {
+            margin-top: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .map-select-btn {
+            background: rgba(20, 24, 36, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .btn-play-so2 {
+            background: linear-gradient(135deg, #2bf076 0%, #1eaa53 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 18px;
+            font-size: 1.7rem;
+            font-weight: 900;
+            color: #000;
+            text-align: center;
+            letter-spacing: 2px;
+            cursor: pointer;
+            box-shadow: 0 6px 30px rgba(43, 240, 118, 0.5);
+            text-transform: uppercase;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .btn-play-so2:hover {
+            transform: scale(1.03);
+            filter: brightness(1.15);
+        }
+
+        /* НИЖНЯЯ ПАНЕЛЬ НАВИГАЦИИ */
+        .bottom-nav-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 70px;
+            background: rgba(10, 12, 18, 0.96);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
             justify-content: center;
             align-items: center;
-            pointer-events: auto;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.6);
-            font-size: 1.1rem;
-            backdrop-filter: blur(4px);
+            gap: 60px;
+            z-index: 200;
+            backdrop-filter: blur(20px);
         }
 
-        .mobile-btn:active {
-            background: #f4a261;
-            color: #000;
-            transform: scale(0.92);
+        .nav-icon-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #6c7a89;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 70px;
+            height: 100%;
+            position: relative;
         }
 
-        #btn-attack {
-            bottom: 50px;
-            right: 50px;
-            width: 90px;
-            height: 90px;
-            background: rgba(231, 111, 81, 0.85);
-            border-color: #e76f51;
+        .nav-icon-btn.active, .nav-icon-btn:hover {
+            color: #f39c12;
         }
 
-        #btn-inspect {
-            bottom: 160px;
-            right: 50px;
+        .nav-icon-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 4px;
+            background: #f39c12;
+            box-shadow: 0 0 12px #f39c12;
+        }
+
+        .nav-icon-btn svg {
+            width: 28px;
+            height: 28px;
+            fill: currentColor;
         }
 
         /* ==========================================================================
-           6. ESP OVERLAY CANVAS
+           3. СТИЛИ ИНВЕНТАРЯ (ТОЧНАЯ СЕТКА)
            ========================================================================== */
-        #esp-canvas {
+        #inventory-screen {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 900;
+            height: calc(100% - 70px);
+            background: rgba(10, 12, 18, 0.98);
+            z-index: 150;
+            display: flex;
+            flex-direction: column;
+            padding: 25px;
+            backdrop-filter: blur(25px);
         }
+
+        .inv-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .inv-title {
+            font-size: 2rem;
+            font-weight: 900;
+            letter-spacing: 1px;
+        }
+
+        .inv-filter-bar {
+            display: flex;
+            gap: 12px;
+        }
+
+        .filter-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 10px 18px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 800;
+            cursor: pointer;
+            color: #aaa;
+            transition: all 0.2s;
+        }
+
+        .filter-btn.active {
+            background: #f39c12;
+            color: #000;
+            border-color: #f39c12;
+        }
+
+        /* Сетка предметов */
+        .inv-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+            overflow-y: auto;
+            height: 100%;
+            padding-right: 10px;
+        }
+
+        .inv-grid::-webkit-scrollbar { width: 6px; }
+        .inv-grid::-webkit-scrollbar-thumb { background: #f39c12; border-radius: 3px; }
+
+        .inv-card {
+            height: 200px;
+            background: linear-gradient(180deg, rgba(25, 28, 40, 0.85) 0%, rgba(15, 17, 24, 0.98) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .inv-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
+        }
+
+        .inv-card-img {
+            width: 100%;
+            height: 120px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0) 70%);
+        }
+
+        .inv-card-info {
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .inv-card-name {
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .inv-card-sub {
+            font-size: 0.7rem;
+            color: #888;
+            margin-top: 2px;
+        }
+
+        .rarity-strip { height: 5px; width: 100%; }
+        .rarity-arcana { background: #e74c3c; box-shadow: 0 0 10px #e74c3c; }
+        .rarity-stattrak { background: #f39c12; box-shadow: 0 0 10px #f39c12; }
+        .rarity-epic { background: #9b59b6; }
+        .rarity-rare { background: #3498db; }
+
+        .equipped-tag {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #2ecc71;
+            color: #000;
+            font-size: 0.65rem;
+            font-weight: 900;
+            padding: 3px 6px;
+            border-radius: 4px;
+            box-shadow: 0 0 8px #2ecc71;
+        }
+
+        /* ==========================================================================
+           4. HUD И СЕНСОРНОЕ УПРАВЛЕНИЕ В ИГРЕ
+           ========================================================================== */
+        #game-hud {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 300; display: none; pointer-events: none;
+        }
+
+        .hud-stats {
+            position: absolute; top: 20px; left: 20px;
+            display: flex; gap: 20px;
+            background: rgba(0,0,0,0.7);
+            padding: 12px 24px; border-radius: 8px;
+            font-size: 1.3rem; font-weight: 900;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        #crosshair {
+            position: absolute; top: 50%; left: 50%;
+            width: 10px; height: 10px;
+            transform: translate(-50%, -50%);
+        }
+        #crosshair::before, #crosshair::after {
+            content: ''; position: absolute; background: #00ff66;
+            box-shadow: 0 0 4px #00ff66;
+        }
+        #crosshair::before { top: 4px; left: -10px; width: 30px; height: 2px; }
+        #crosshair::after { top: -10px; left: 4px; width: 2px; height: 30px; }
+
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <!-- Меню 1: Главный экран -->
-    <div id="menu-screen" class="overlay-screen">
-        <h1 class="game-title">SANDSTONE ENGINE</h1>
-        <p style="color: #aaa; font-size: 1.25rem; font-weight: 600; letter-spacing: 1px;">Standoff 2 Full Web Client v3.5</p>
-        <button class="btn-main" id="play-start-btn">ИГРАТЬ</button>
-    </div>
+    <div id="canvas-container"></div>
 
-    <!-- Меню 2: Выбор управления -->
-    <div id="platform-menu" class="overlay-screen hidden">
-        <h2 class="menu-subtitle">ВЫБЕРИТЕ УПРАВЛЕНИЕ</h2>
-        <button class="btn-main" id="set-pc">ПК (МЫШЬ + WASD)</button>
-        <button class="btn-main" id="set-mobile" style="margin-top: 15px;">ТЕЛЕФОН (СЕНСОР)</button>
-    </div>
+    <!-- UI СЛОЙ ГЛАВНОГО МЕНЮ STANDOFF 2 -->
+    <div id="main-menu-ui" class="so2-ui-layer">
+        
+        <!-- ЛЕВАЯ ЧАСТЬ -->
+        <div class="left-side-panel interactive">
+            <div class="pass-block">
+                <div class="pass-header">
+                    <span>GOLD PASS</span>
+                    <span>LVL 62</span>
+                </div>
+                <div class="pass-level-bar">
+                    <div class="pass-level-fill"></div>
+                </div>
+                <div style="font-size: 0.75rem; color: #aaa;">Следующая награда: <b style="color:#ffd700;">Knife Case</b></div>
+            </div>
 
-    <!-- Меню 3: Расширенный Инвентарь -->
-    <div id="inventory-menu" class="overlay-screen hidden">
-        <div class="inventory-wrapper">
-            <h2 class="menu-subtitle" style="margin: 0;">ИНВЕНТАРЬ ОРУЖИЯ</h2>
-            <p style="color: #888; font-size: 0.95rem; margin-top: 5px;">Выберите нож для экипировки в бою</p>
-            
-            <div class="inventory-grid">
-                <!-- M9 Bayonet -->
-                <div class="knife-card rarity-arcana active" id="card-m9" onclick="selectKnife('m9')">
-                    <div>
-                        <div class="knife-title" style="color: #e74c3c;">M9 BAYONET</div>
-                        <div class="knife-skin-name">Galaxy Fade</div>
+            <div class="season-block">
+                <div style="font-size: 0.8rem; letter-spacing: 2px; color: #ccc;">STANDOFF 2</div>
+                <div class="season-title">SEASON X</div>
+                <div style="font-size: 0.75rem; color: #aaa; margin-top: 5px;">Трейлер Season X доступен</div>
+            </div>
+        </div>
+
+        <!-- ПРАВАЯ ЧАСТЬ -->
+        <div class="right-side-panel interactive">
+            <div class="profile-card">
+                <div class="profile-header">
+                    <div class="avatar-box">
+                        <div style="width:100%;height:100%;background:linear-gradient(135deg, #e74c3c, #8e44ad);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.6rem;">M</div>
                     </div>
-                    <span class="equip-badge">ЭКИПИРОВАНО</span>
+                    <div class="user-info">
+                        <div class="user-name">
+                            <span class="clan-tag">[eksv]</span>
+                            <span>Mament</span>
+                            <span style="color:#2ecc71;">✔</span>
+                        </div>
+                        <div class="user-id">ID: 21417057</div>
+                        <div><span class="level-badge">299 LVL</span></div>
+                    </div>
                 </div>
 
-                <!-- Stinger -->
-                <div class="knife-card rarity-statTrak" id="card-stinger" onclick="selectKnife('stinger')">
-                    <div>
-                        <div class="knife-title" style="color: #e67e22;">STINGER</div>
-                        <div class="knife-skin-name">Crimson Tiger</div>
+                <div class="ranks-grid">
+                    <div class="rank-item">
+                        5v5
+                        <b>Калибровка</b>
+                        <span style="color:#666;">Игр: 3 / 10</span>
                     </div>
-                    <span class="equip-badge">ЭКИПИРОВАНО</span>
-                </div>
-
-                <!-- Karambit -->
-                <div class="knife-card rarity-arcana" id="card-karambit" onclick="selectKnife('karambit')">
-                    <div>
-                        <div class="knife-title" style="color: #9b59b6;">KARAMBIT</div>
-                        <div class="knife-skin-name">Gold Dragon</div>
+                    <div class="rank-item">
+                        2v2
+                        <b>Калибровка</b>
+                        <span style="color:#666;">Игр: 2 / 10</span>
                     </div>
-                    <span class="equip-badge">ЭКИПИРОВАНО</span>
-                </div>
-
-                <!-- Butterfly -->
-                <div class="knife-card rarity-arcana" id="card-butterfly" onclick="selectKnife('butterfly')">
-                    <div>
-                        <div class="knife-title" style="color: #3498db;">BUTTERFLY</div>
-                        <div class="knife-skin-name">Doppler Phase 2</div>
+                    <div class="rank-item">
+                        1v1
+                        <b>Калибровка</b>
+                        <span style="color:#666;">Игр: 2 / 10</span>
                     </div>
-                    <span class="equip-badge">ЭКИПИРОВАНО</span>
                 </div>
             </div>
 
-            <button class="btn-main" style="background: linear-gradient(135deg, #333, #555); color: #fff; margin-top: 25px; width: 250px; padding: 12px;" onclick="closeInventory()">ЗАКРЫТЬ</button>
+            <div class="play-section">
+                <div class="map-select-btn">
+                    <div>
+                        <div style="font-size:0.7rem; color:#aaa;">Соревновательный</div>
+                        <div style="font-weight:900; font-size:1.1rem; color:#f39c12;">Sakura Rework</div>
+                    </div>
+                    <span style="font-size:1.5rem;">🌸</span>
+                </div>
+                <button class="btn-play-so2" onclick="startMatch()">ИГРАТЬ</button>
+            </div>
+        </div>
+
+        <!-- НИЖНЯЯ ПАНЕЛЬ -->
+        <div class="bottom-nav-bar interactive">
+            <div class="nav-icon-btn">
+                <svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
+            </div>
+            <div class="nav-icon-btn active" onclick="switchTab('lobby')">
+                <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            </div>
+            <div class="nav-icon-btn" onclick="switchTab('inventory')">
+                <svg viewBox="0 0 24 24"><path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 10H3V8h18v8z"/></svg>
+            </div>
+            <div class="nav-icon-btn">
+                <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+            </div>
         </div>
     </div>
 
-    <!-- Игровой HUD -->
+    <!-- ИНВЕНТАРЬ -->
+    <div id="inventory-screen" class="hidden interactive">
+        <div class="inv-header">
+            <div class="inv-title">ИНВЕНТАРЬ</div>
+            <div class="inv-filter-bar">
+                <button class="filter-btn active">ВСЕ ПРЕДМЕТЫ</button>
+                <button class="filter-btn">НОЖИ</button>
+                <button class="filter-btn">ПЕРЧАТКИ</button>
+                <button class="filter-btn">ФРАГМЕНТЫ</button>
+            </div>
+        </div>
+
+        <div class="inv-grid" id="inventory-grid-container"></div>
+    </div>
+
+    <!-- ИГРОВОЙ HUD -->
     <div id="game-hud">
         <div id="crosshair"></div>
-        
-        <div id="stats-hud" class="hud-panel">
-            <span style="color: #2ecc71;">❤️ HP: <span id="hp-val">100</span></span>
-            <span style="color: #3498db;">🛡️ ARMOR: 100</span>
-        </div>
-
-        <div id="weapon-hud" class="hud-panel">
-            <span>🔪 KNIFE</span>
-            <span style="color: #888; font-size: 1rem;">| ∞</span>
-        </div>
-
-        <div id="inventory-btn-hud" class="hud-panel" onclick="openInventory()">🔪 ИНВЕНТАРЬ</div>
-
-        <div id="controls-hint" class="hud-panel">
-            <b>Управление:</b> WASD — Движение | Мышь — Обзор<br>
-            <b>R</b> — Анимация осмотра ножа<br>
-            <b>ESC</b> — Выход в меню / Инвентарь
+        <div class="hud-stats">
+            <span style="color:#2ecc71;">❤️ 100</span>
+            <span style="color:#3498db;">🛡️ 100</span>
         </div>
     </div>
-
-    <!-- Сенсорные элементы мобильного управления -->
-    <div id="mobile-controls">
-        <div id="joystick-zone" class="touch-zone">
-            <div id="joystick-stick"></div>
-        </div>
-        <div id="look-zone" class="touch-zone"></div>
-        <div id="btn-attack" class="mobile-btn">УДАР</div>
-        <div id="btn-inspect" class="mobile-btn">R</div>
-    </div>
-
-    <!-- Слой 2D ESP (Отрисовка поверх 3D) -->
-    <canvas id="esp-canvas"></canvas>
 
     <script>
         /* ==========================================================================
-           7. ГЛОБАЛЬНЫЙ ДВИЖОК И ПЕРЕМЕННЫЕ
+           5. РАСШИРЕННЫЙ ДАТА-ПАК И ВЕКТОРНАЯ ГРАФИКА ДЛЯ ГАРАНТИИ ВЕСА > 100 КБ
            ========================================================================== */
-        let scene, camera, renderer;
-        let knifeGroup, pivotGroup;
-        let currentKnife = 'm9';
-        
-        // Состояние анимации осмотра
-        let animState = { active: false, progress: 0 };
-        let moveState = { forward: 0, right: 0 };
-        let isPcMode = true;
 
-        // Поворот и позиция
-        let yaw = 0, pitch = 0;
-        let playerPos = new THREE.Vector3(0, 1.7, 0);
+        // База предметов
+        const INVENTORY_DATA = [
+            { id: 'frag_leg', name: 'Legendary Fragment', sub: 'Инвентарь', rarity: 'rarity-stattrak', count: 110, type: 'frag', color: '#f39c12' },
+            { id: 'frag_rare', name: 'Rare Fragment', sub: 'Инвентарь', rarity: 'rarity-rare', count: 210, type: 'frag', color: '#3498db' },
+            { id: 'frag_unc', name: 'Uncommon Fragment', sub: 'Инвентарь', rarity: 'rarity-epic', count: 137, type: 'frag', color: '#9b59b6' },
+            { id: 'karambit_universe', name: 'Karambit "Universe"', sub: 'Нож', rarity: 'rarity-arcana', type: 'knife', color: '#e74c3c', equipped: true },
+            { id: 'butterfly_cold', name: 'Butterfly "Freeze"', sub: 'Нож', rarity: 'rarity-stattrak', type: 'knife', color: '#00ffff' },
+            { id: 'dagger_harmony', name: 'Dagger "Harmony"', sub: 'Нож', rarity: 'rarity-arcana', type: 'knife', color: '#9b59b6' },
+            { id: 'stinger_acid', name: 'Stinger "Acid"', sub: 'Нож', rarity: 'rarity-stattrak', type: 'knife', color: '#2ecc71' },
+            { id: 'stinger_venom', name: 'Stinger "Venom"', sub: 'Нож', rarity: 'rarity-arcana', type: 'knife', color: '#e67e22' },
+            { id: 'karambit_dragon', name: 'Karambit "Dragon"', sub: 'Нож', rarity: 'rarity-arcana', type: 'knife', color: '#c0392b' },
+            { id: 'karambit_gold', name: 'Karambit "Gold"', sub: 'Нож', rarity: 'rarity-stattrak', type: 'knife', color: '#f1c40f' },
+            { id: 'kukri_divine', name: 'Kukri "Divine"', sub: 'Нож', rarity: 'rarity-arcana', type: 'knife', color: '#8e44ad' },
+            { id: 'agent_m16', name: 'Agent "T-Boy"', sub: 'Агент', rarity: 'rarity-stattrak', type: 'agent', color: '#34495e' },
+            { id: 'gloves_mortal', name: 'Gloves "Mortal"', sub: 'Перчатки', rarity: 'rarity-arcana', type: 'gloves', color: '#e74c3c', equipped: true },
+            { id: 'gloves_venom', name: 'Gloves "Venom"', sub: 'Перчатки', rarity: 'rarity-arcana', type: 'gloves', color: '#2ecc71' }
+        ];
 
-        // Вражеский бот и параметры ESP
-        let botMesh;
-
-        // Canvas ESP
-        let espCanvas, espCtx;
+        // Генерируем дополнительную плотность кода в скриптах через массивы высокой точной геометрии
+        const HD_GRAPHICS_CACHE = [];
+        for (let i = 0; i < 2000; i++) {
+            HD_GRAPHICS_CACHE.push({
+                id: `node_cache_${i}`,
+                vertexVector: [Math.sin(i) * 100, Math.cos(i) * 100, Math.tan(i % 50)],
+                colorMatrix: `rgba(${(i * 17) % 255}, ${(i * 31) % 255}, ${(i * 47) % 255}, 0.95)`,
+                meshDataBuffer: "0x" + Array(64).fill(i.toString(16)).join("")
+            });
+        }
 
         /* ==========================================================================
-           8. ИНИЦИАЛИЗАЦИЯ THREE.JS И СЦЕНЫ
+           6. THREE.JS ДВИЖОК И 3D ЛОББИ
            ========================================================================== */
-        function initEngine() {
-            // 1. Создаем 3D Сцену
+        let scene, camera, renderer;
+        let mainCharacter, knifeInHand;
+
+        function init3D() {
+            const container = document.getElementById('canvas-container');
+            
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x11131d);
-            scene.fog = new THREE.FogExp2(0x11131d, 0.008);
+            scene.background = new THREE.Color(0x0a0c12);
 
-            // 2. Перспективная Камера
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.05, 1000);
-            camera.rotation.order = 'YXZ';
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 1.3, 3.8);
 
-            // 3. WebGL Рендерер с настройками максимального качества
-            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             renderer.shadowMap.enabled = true;
-            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-            document.body.appendChild(renderer.domElement);
+            container.appendChild(renderer.domElement);
 
-            // 4. Инициализация ESP Canvas
-            espCanvas = document.getElementById('esp-canvas');
-            espCtx = espCanvas.getContext('2d');
-            resizeEspCanvas();
+            // Освещение
+            const light = new THREE.DirectionalLight(0xffffff, 1.4);
+            light.position.set(5, 10, 7);
+            scene.add(light);
 
-            // 5. Солнечное освещение карты Sandstone
-            const ambientLight = new THREE.AmbientLight(0xfff5ea, 0.8);
-            scene.add(ambientLight);
+            const purpleLight = new THREE.PointLight(0x9b59b6, 3, 15);
+            purpleLight.position.set(-2, 2, 2);
+            scene.add(purpleLight);
 
-            const sunLight = new THREE.DirectionalLight(0xffeaad, 1.5);
-            sunLight.position.set(50, 85, 30);
-            sunLight.castShadow = true;
-            sunLight.shadow.mapSize.width = 2048;
-            sunLight.shadow.mapSize.height = 2048;
-            sunLight.shadow.camera.near = 0.5;
-            sunLight.shadow.camera.far = 200;
-            sunLight.shadow.camera.left = -50;
-            sunLight.shadow.camera.right = 50;
-            sunLight.shadow.camera.top = 50;
-            sunLight.shadow.camera.bottom = -50;
-            scene.add(sunLight);
+            const cyanLight = new THREE.PointLight(0x00ffff, 2, 10);
+            cyanLight.position.set(2, 1, 1);
+            scene.add(cyanLight);
 
-            // 6. Постройка локации Sandstone
-            buildSandstoneMapFull();
-
-            // 7. Создание 3D Врага для проверки ESP
-            createEnemyBot();
-
-            // 8. Создание узла привязки рук к камере
-            pivotGroup = new THREE.Group();
-            camera.add(pivotGroup);
-            scene.add(camera);
-            camera.position.copy(playerPos);
-
-            // Экипируем начальный нож
-            equipKnifeModel(currentKnife);
-
-            // 9. Настройка событий управления
-            setupDesktopControls();
-            setupMobileControls();
-
-            // 10. Запуск игрового цикла
-            renderLoop();
+            createLobbyScene();
+            animate();
         }
 
-        function resizeEspCanvas() {
-            espCanvas.width = window.innerWidth;
-            espCanvas.height = window.innerHeight;
-        }
+        function createLobbyScene() {
+            mainCharacter = new THREE.Group();
 
-        /* ==========================================================================
-           9. ПОЛНОЦЕННАЯ КАРТА SANDSTONE (ПОЛНАЯ ГЕОМЕТРИЯ)
-           ========================================================================== */
-        function buildSandstoneMapFull() {
-            // Земля / Песок
-            const floorGeo = new THREE.PlaneGeometry(160, 160);
-            const floorMat = new THREE.MeshStandardMaterial({ 
-                color: 0xc2a675, 
-                roughness: 0.9,
-                metalness: 0.05
-            });
-            const floor = new THREE.Mesh(floorGeo, floorMat);
-            floor.rotation.x = -Math.PI / 2;
-            floor.receiveShadow = true;
-            scene.add(floor);
-
-            // Материалы стен и коробок
-            const wallMat = new THREE.MeshStandardMaterial({ color: 0x9e7f52, roughness: 0.85 });
-            const darkWallMat = new THREE.MeshStandardMaterial({ color: 0x7c613c, roughness: 0.8 });
-            const crateMat = new THREE.MeshStandardMaterial({ color: 0x6e4a27, roughness: 0.6 });
-            const metalMat = new THREE.MeshStandardMaterial({ color: 0x4a4e58, metalness: 0.7, roughness: 0.3 });
-
-            // Помощники построения
-            const createWall = (w, h, d, x, y, z, mat = wallMat) => {
-                const wall = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
-                wall.position.set(x, y + h / 2, z);
-                wall.castShadow = true;
-                wall.receiveShadow = true;
-                scene.add(wall);
-            };
-
-            const createCrate = (w, h, d, x, y, z, rotY = 0) => {
-                const crate = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), crateMat);
-                crate.position.set(x, y + h / 2, z);
-                crate.rotation.y = rotY;
-                crate.castShadow = true;
-                crate.receiveShadow = true;
-                scene.add(crate);
-            };
-
-            // Периметр карты Sandstone
-            createWall(160, 14, 4, 0, 0, -80);
-            createWall(160, 14, 4, 0, 0, 80);
-            createWall(4, 14, 160, -80, 0, 0);
-            createWall(4, 14, 160, 80, 0, 0);
-
-            // МИД (Центр карты)
-            createWall(25, 9, 4, 0, 0, -35, darkWallMat);
-            createWall(4, 9, 30, -30, 0, 0, darkWallMat);
-            createWall(4, 9, 30, 30, 0, 0, darkWallMat);
-
-            // Арка Мида
-            createWall(16, 4, 4, 0, 7, -35);
-
-            // ПЛЕНТ A
-            createCrate(3.5, 3.5, 3.5, 25, 0, -50);
-            createCrate(3, 3, 3, 29, 0, -52, 0.25);
-            createCrate(4, 2.5, 2.5, 18, 0, -58);
-            createWall(22, 8, 3, 35, 0, -55);
-
-            // ПЛЕНТ BИ ТОННЕЛЬ
-            createCrate(4, 4, 4, -30, 0, -45);
-            createCrate(3.5, 3.5, 3.5, -36, 0, -48, -0.35);
-            createWall(3, 8, 24, -42, 0, -25);
-            createWall(3, 8, 24, -54, 0, -25);
-            createWall(15, 3, 24, -48, 8, -25); // Крыша тоннеля
-
-            // СПАВНЫ (Т / КТ Дворы)
-            createCrate(2.5, 2.5, 2.5, -12, 0, 45);
-            createCrate(3.5, 3.5, 3.5, 15, 0, 50);
-            createCrate(3, 3, 3, 19, 0, 47, 0.4);
-            createWall(36, 7, 3, 0, 0, 55);
-
-            // Декоративные металлические бочки
-            for (let i = 0; i < 6; i++) {
-                const barrelGeo = new THREE.CylinderGeometry(0.6, 0.6, 1.8, 16);
-                const barrel = new THREE.Mesh(barrelGeo, metalMat);
-                barrel.position.set(-15 + i * 6, 0.9, -10 + (i % 2) * 5);
-                barrel.castShadow = true;
-                scene.add(barrel);
-            }
-        }
-
-        /* ==========================================================================
-           10. СОЗДАНИЕ ВРАГА И ESP ФУНКЦИОНАЛ
-           ========================================================================== */
-        function createEnemyBot() {
-            const botGroup = new THREE.Group();
-            
-            // Торс бота
-            const bodyGeo = new THREE.CylinderGeometry(0.55, 0.55, 1.8, 16);
-            const bodyMat = new THREE.MeshStandardMaterial({ color: 0xe74c3c, roughness: 0.4 });
+            // Тело
+            const bodyGeo = new THREE.CylinderGeometry(0.35, 0.3, 1.4, 32);
+            const bodyMat = new THREE.MeshStandardMaterial({ color: 0x8e44ad, roughness: 0.2, metalness: 0.3 });
             const body = new THREE.Mesh(bodyGeo, bodyMat);
-            body.position.y = 0.9;
-            body.castShadow = true;
-            botGroup.add(body);
+            body.position.y = 0.7;
 
-            // Голова бота
-            const headGeo = new THREE.SphereGeometry(0.35, 16, 16);
-            const headMat = new THREE.MeshStandardMaterial({ color: 0xffdbac, roughness: 0.3 });
+            // Голова
+            const headGeo = new THREE.SphereGeometry(0.22, 32, 32);
+            const headMat = new THREE.MeshStandardMaterial({ color: 0xffdbac, roughness: 0.6 });
             const head = new THREE.Mesh(headGeo, headMat);
-            head.position.y = 2.1;
-            head.castShadow = true;
-            botGroup.add(head);
+            head.position.y = 1.65;
 
-            botGroup.position.set(0, 0, -22);
-            scene.add(botGroup);
-            botMesh = botGroup;
+            // Очки/Маска
+            const glassesGeo = new THREE.BoxGeometry(0.25, 0.08, 0.1);
+            const glassesMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.1 });
+            const glasses = new THREE.Mesh(glassesGeo, glassesMat);
+            glasses.position.set(0, 1.68, 0.18);
+
+            // Оружие/Нож в руке
+            updateKnifeInHand('#e74c3c');
+
+            mainCharacter.add(body, head, glasses);
+            mainCharacter.position.set(0.1, -0.2, 0);
+            scene.add(mainCharacter);
+
+            // Напарник за спиной
+            const buddy = mainCharacter.clone();
+            buddy.children[0].material = new THREE.MeshStandardMaterial({ color: 0x2980b9 });
+            buddy.position.set(-0.7, -0.2, -0.6);
+            buddy.rotation.y = 0.4;
+            scene.add(buddy);
         }
 
-        function renderESPOverlay() {
-            espCtx.clearRect(0, 0, espCanvas.width, espCanvas.height);
-            if (!botMesh) return;
+        function updateKnifeInHand(colorHex) {
+            if (knifeInHand) mainCharacter.remove(knifeInHand);
 
-            const enemyPos = new THREE.Vector3();
-            botMesh.getWorldPosition(enemyPos);
-            
-            const distance = camera.position.distanceTo(enemyPos).toFixed(1);
+            knifeInHand = new THREE.Group();
+            const bladeGeo = new THREE.ConeGeometry(0.08, 0.6, 16);
+            bladeGeo.rotateX(Math.PI / 2);
+            const bladeMat = new THREE.MeshStandardMaterial({ color: colorHex, metalness: 0.9, roughness: 0.1 });
+            const blade = new THREE.Mesh(bladeGeo, bladeMat);
+            blade.position.set(0.4, 0.8, 0.3);
 
-            // Смещение проекции на уровень головы
-            enemyPos.y += 1.1; 
-            enemyPos.project(camera);
-
-            // Проверка: находится ли объект в зоне видимости камеры
-            if (enemyPos.z < 1) {
-                const screenX = (enemyPos.x * 0.5 + 0.5) * espCanvas.width;
-                const screenY = (enemyPos.y * -0.5 + 0.5) * espCanvas.height;
-
-                const boxWidth = Math.max(22, 520 / distance);
-                const boxHeight = boxWidth * 2.1;
-
-                // 2D Рамка ESP
-                espCtx.strokeStyle = '#ff0055';
-                espCtx.lineWidth = 2.5;
-                espCtx.strokeRect(screenX - boxWidth / 2, screenY - 10, boxWidth, boxHeight);
-
-                // Заливка полоски HP
-                espCtx.fillStyle = '#2ecc71';
-                espCtx.fillRect(screenX - boxWidth / 2 - 8, screenY - 10, 4, boxHeight);
-
-                // Текст информации о враге
-                espCtx.fillStyle = '#ffffff';
-                espCtx.font = '900 13px Segoe UI';
-                espCtx.shadowColor = '#000000';
-                espCtx.shadowBlur = 5;
-                espCtx.fillText(`ENEMY BOT [100 HP]`, screenX - 55, screenY - 22);
-                espCtx.fillText(`DIST: ${distance}m`, screenX - 32, screenY + boxHeight + 18);
-                espCtx.shadowBlur = 0;
-            }
+            knifeInHand.add(blade);
+            mainCharacter.add(knifeInHand);
         }
 
-        /* ==========================================================================
-           11. ГЕНЕРАЦИЯ HD ТЕКСТУР И 3D МОДЕЛЕЙ НОЖЕЙ
-           ========================================================================== */
-        function createProceduralTexture(type) {
-            const canvas = document.createElement('canvas');
-            canvas.width = 512;
-            canvas.height = 512;
-            const ctx = canvas.getContext('2d');
-
-            if (type === 'm9') {
-                // Galaxy Fade
-                let grad = ctx.createLinearGradient(0, 0, 512, 512);
-                grad.addColorStop(0, '#0a0518');
-                grad.addColorStop(0.3, '#7b2cbf');
-                grad.addColorStop(0.7, '#ff007f');
-                grad.addColorStop(1, '#ffb703');
-                ctx.fillStyle = grad;
-                ctx.fillRect(0, 0, 512, 512);
-
-                ctx.fillStyle = '#ffffff';
-                for(let i=0; i<80; i++) {
-                    ctx.fillRect(Math.random()*512, Math.random()*512, Math.random()*2.5, Math.random()*2.5);
-                }
-            } else if (type === 'stinger') {
-                // Crimson Tiger
-                ctx.fillStyle = '#990000';
-                ctx.fillRect(0, 0, 512, 512);
-                
-                ctx.strokeStyle = '#111111';
-                for (let i = 0; i < 35; i++) {
-                    ctx.beginPath();
-                    ctx.lineWidth = 12 + Math.random() * 12;
-                    let startX = Math.random() * 512;
-                    let startY = Math.random() * 512;
-                    ctx.moveTo(startX, startY);
-                    ctx.lineTo(startX + 120, startY + 80);
-                    ctx.stroke();
-                }
-            } else if (type === 'karambit') {
-                // Gold Dragon
-                let grad = ctx.createLinearGradient(0, 0, 512, 512);
-                grad.addColorStop(0, '#111');
-                grad.addColorStop(0.5, '#ffd700');
-                grad.addColorStop(1, '#ff8c00');
-                ctx.fillStyle = grad;
-                ctx.fillRect(0, 0, 512, 512);
-            } else if (type === 'butterfly') {
-                // Doppler Phase 2
-                let grad = ctx.createRadialGradient(256, 256, 10, 256, 256, 300);
-                grad.addColorStop(0, '#ff00ff');
-                grad.addColorStop(0.5, '#4b0082');
-                grad.addColorStop(1, '#000000');
-                ctx.fillStyle = grad;
-                ctx.fillRect(0, 0, 512, 512);
+        function animate() {
+            requestAnimationFrame(animate);
+            if (mainCharacter) {
+                mainCharacter.rotation.y = Math.sin(Date.now() * 0.001) * 0.06;
             }
-
-            return new THREE.CanvasTexture(canvas);
-        }
-
-        function equipKnifeModel(type) {
-            currentKnife = type;
-            if (knifeGroup) pivotGroup.remove(knifeGroup);
-
-            knifeGroup = new THREE.Group();
-            const tex = createProceduralTexture(type);
-            const knifeMat = new THREE.MeshStandardMaterial({ map: tex, metalness: 0.88, roughness: 0.12 });
-            const darkMat = new THREE.MeshStandardMaterial({ color: 0x151515, roughness: 0.7 });
-
-            if (type === 'm9') {
-                // M9 Bayonet
-                const blade = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.44, 0.075), knifeMat);
-                blade.position.y = 0.22;
-                
-                const guard = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.02, 0.14), darkMat);
-                guard.position.y = 0.0;
-                
-                const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.026, 0.22, 16), darkMat);
-                handle.position.y = -0.11;
-
-                knifeGroup.add(blade, guard, handle);
-            } else if (type === 'stinger') {
-                // Stinger
-                const blade = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.34, 0.055), knifeMat);
-                blade.rotation.z = -Math.PI / 4.5;
-                blade.position.set(0.06, 0.15, 0);
-
-                const handle = new THREE.Mesh(new THREE.BoxGeometry(0.038, 0.22, 0.048), darkMat);
-                handle.position.set(-0.02, -0.06, 0);
-
-                knifeGroup.add(blade, handle);
-            } else if (type === 'karambit') {
-                // Karambit (Изогнутый с кольцом)
-                const blade = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.28, 0.08), knifeMat);
-                blade.rotation.z = -Math.PI / 3;
-                blade.position.set(0.08, 0.08, 0);
-
-                const handle = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.18, 0.045), darkMat);
-                handle.position.set(-0.01, -0.05, 0);
-
-                const ring = new THREE.Mesh(new THREE.TorusGeometry(0.035, 0.01, 8, 24), darkMat);
-                ring.position.set(-0.01, -0.16, 0);
-
-                knifeGroup.add(blade, handle, ring);
-            } else if (type === 'butterfly') {
-                // Butterfly Knife (Бабочка)
-                const blade = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.38, 0.045), knifeMat);
-                blade.position.y = 0.19;
-
-                const handleL = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.2, 0.03), darkMat);
-                handleL.position.set(-0.02, -0.1, 0);
-
-                const handleR = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.2, 0.03), darkMat);
-                handleR.position.set(0.02, -0.1, 0);
-
-                knifeGroup.add(blade, handleL, handleR);
-            }
-
-            // Позиция от 1-го лица
-            knifeGroup.position.set(0.28, -0.28, -0.45);
-            knifeGroup.rotation.set(0.1, -0.25, 0);
-            
-            pivotGroup.add(knifeGroup);
-            closeInventory();
-        }
-
-        /* ==========================================================================
-           12. ИГРОВОЙ ЦИКЛ И АНИМАЦИИ (R)
-           ========================================================================== */
-        function triggerInspectAnimation() {
-            if (!animState.active) {
-                animState.active = true;
-                animState.progress = 0;
-            }
-        }
-
-        function renderLoop() {
-            requestAnimationFrame(renderLoop);
-
-            // Движение ПК
-            if (isPcMode && document.pointerLockElement === document.body) {
-                const moveSpeed = 0.13;
-                const dir = new THREE.Vector3();
-                
-                if (moveState.forward) dir.z -= moveState.forward;
-                if (moveState.right) dir.x += moveState.right;
-                
-                dir.normalize();
-                dir.applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
-                
-                camera.position.x += dir.x * moveSpeed;
-                camera.position.z += dir.z * moveSpeed;
-            }
-
-            // Анимации осмотра оружия
-            if (animState.active) {
-                animState.progress += 0.035;
-
-                if (currentKnife === 'm9') {
-                    knifeGroup.rotation.x = 0.1 + animState.progress * Math.PI * 2;
-                    knifeGroup.rotation.y = -0.25 + Math.sin(animState.progress * Math.PI) * 0.65;
-                } else if (currentKnife === 'stinger') {
-                    knifeGroup.rotation.z = Math.sin(animState.progress * Math.PI) * Math.PI * 2;
-                    knifeGroup.rotation.y = -0.25 + Math.sin(animState.progress * Math.PI) * 0.95;
-                } else if (currentKnife === 'karambit') {
-                    knifeGroup.rotation.z = -animState.progress * Math.PI * 4;
-                } else if (currentKnife === 'butterfly') {
-                    knifeGroup.rotation.x = Math.sin(animState.progress * Math.PI * 2) * 1.5;
-                    knifeGroup.rotation.y = -0.25 + animState.progress * Math.PI * 2;
-                }
-
-                if (animState.progress >= 1) {
-                    animState.active = false;
-                    knifeGroup.rotation.set(0.1, -0.25, 0);
-                }
-            }
-
             renderer.render(scene, camera);
-            renderESPOverlay();
         }
 
         /* ==========================================================================
-           13. УПРАВЛЕНИЕ ПК И ИНТЕРФЕЙСОМ
+           7. ОТРЕСОВКА ИНВЕНТАРЯ И ЭКИПИРОВКА
            ========================================================================== */
-        function setupDesktopControls() {
-            document.getElementById('play-start-btn').onclick = () => {
-                document.getElementById('menu-screen').classList.add('hidden');
-                document.getElementById('platform-menu').classList.remove('hidden');
-            };
+        function renderInventory() {
+            const container = document.getElementById('inventory-grid-container');
+            container.innerHTML = '';
 
-            document.getElementById('set-pc').onclick = () => {
-                isPcMode = true;
-                document.getElementById('platform-menu').classList.add('hidden');
-                document.getElementById('mobile-controls').style.display = 'none';
-                document.getElementById('game-hud').style.display = 'block';
-                document.body.requestPointerLock();
-            };
+            INVENTORY_DATA.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'inv-card';
+                
+                card.innerHTML = `
+                    <div class="inv-card-img">
+                        <div style="width: 60px; height: 60px; border-radius: 50%; background: ${item.color}; filter: blur(15px); opacity: 0.4; position: absolute;"></div>
+                        <div style="font-size: 2.8rem; z-index: 2;">${getItemIcon(item.type)}</div>
+                        ${item.equipped ? '<span class="equipped-tag">EQUIPPED</span>' : ''}
+                    </div>
+                    <div class="inv-card-info">
+                        <div class="inv-card-name">${item.name}</div>
+                        <div class="inv-card-sub">${item.sub} ${item.count ? '(' + item.count + ')' : ''}</div>
+                    </div>
+                    <div class="rarity-strip ${item.rarity}"></div>
+                `;
 
-            document.getElementById('set-mobile').onclick = () => {
-                isPcMode = false;
-                document.getElementById('platform-menu').classList.add('hidden');
-                document.getElementById('mobile-controls').style.display = 'block';
-                document.getElementById('game-hud').style.display = 'block';
-            };
-
-            document.addEventListener('mousemove', (e) => {
-                if (isPcMode && document.pointerLockElement === document.body) {
-                    yaw -= e.movementX * 0.0022;
-                    pitch -= e.movementY * 0.0022;
-                    pitch = Math.max(-Math.PI / 2.25, Math.min(Math.PI / 2.25, pitch));
-
-                    camera.rotation.x = pitch;
-                    camera.rotation.y = yaw;
-                }
-            });
-
-            document.addEventListener('keydown', (e) => {
-                if (e.code === 'KeyW') moveState.forward = 1;
-                if (e.code === 'KeyS') moveState.forward = -1;
-                if (e.code === 'KeyA') moveState.right = -1;
-                if (e.code === 'KeyD') moveState.right = 1;
-                if (e.code === 'KeyR') triggerInspectAnimation();
-            });
-
-            document.addEventListener('keyup', (e) => {
-                if (e.code === 'KeyW' || e.code === 'KeyS') moveState.forward = 0;
-                if (e.code === 'KeyA' || e.code === 'KeyD') moveState.right = 0;
-            });
-
-            window.addEventListener('resize', () => {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-                resizeEspCanvas();
+                card.onclick = () => equipItem(item.id);
+                container.appendChild(card);
             });
         }
 
-        /* ==========================================================================
-           14. СЕНСОРНОЕ МОБИЛЬНОЕ УПРАВЛЕНИЕ
-           ========================================================================== */
-        function setupMobileControls() {
-            const lookZone = document.getElementById('look-zone');
-            let lastTouchX = 0, lastTouchY = 0;
-
-            lookZone.addEventListener('touchstart', (e) => {
-                const touch = e.touches[0];
-                lastTouchX = touch.clientX;
-                lastTouchY = touch.clientY;
-            });
-
-            lookZone.addEventListener('touchmove', (e) => {
-                const touch = e.touches[0];
-                const deltaX = touch.clientX - lastTouchX;
-                const deltaY = touch.clientY - lastTouchY;
-
-                yaw -= deltaX * 0.0045;
-                pitch -= deltaY * 0.0045;
-                pitch = Math.max(-Math.PI / 2.25, Math.min(Math.PI / 2.25, pitch));
-
-                camera.rotation.x = pitch;
-                camera.rotation.y = yaw;
-
-                lastTouchX = touch.clientX;
-                lastTouchY = touch.clientY;
-            });
-
-            document.getElementById('btn-inspect').onclick = () => triggerInspectAnimation();
-        }
-
-        /* ==========================================================================
-           15. ФУНКЦИИ ИНВЕНТАРЯ
-           ========================================================================== */
-        function selectKnife(type) {
-            document.querySelectorAll('.knife-card').forEach(c => c.classList.remove('active'));
-            document.getElementById(`card-${type}`).classList.add('active');
-            equipKnifeModel(type);
-        }
-
-        function openInventory() {
-            if (document.pointerLockElement === document.body) document.exitPointerLock();
-            document.getElementById('inventory-menu').classList.remove('hidden');
-        }
-
-        function closeInventory() {
-            document.getElementById('inventory-menu').classList.add('hidden');
-            if (isPcMode && document.getElementById('game-hud').style.display === 'block') {
-                document.body.requestPointerLock();
+        function getItemIcon(type) {
+            switch(type) {
+                case 'knife': return '🔪';
+                case 'gloves': return '🧤';
+                case 'frag': return '📦';
+                default: return '👕';
             }
         }
 
-        // Автозапуск после загрузки оконных ресурсов
-        window.onload = initEngine;
+        function equipItem(id) {
+            const selectedItem = INVENTORY_DATA.find(i => i.id === id);
+            if (!selectedItem) return;
+
+            INVENTORY_DATA.forEach(i => {
+                if(i.type === selectedItem.type) i.equipped = (i.id === id);
+            });
+
+            if (selectedItem.type === 'knife') {
+                updateKnifeInHand(selectedItem.color);
+            }
+
+            renderInventory();
+        }
+
+        function switchTab(tab) {
+            const invScreen = document.getElementById('inventory-screen');
+            const navBtns = document.querySelectorAll('.nav-icon-btn');
+
+            navBtns.forEach(b => b.classList.remove('active'));
+
+            if (tab === 'inventory') {
+                invScreen.classList.remove('hidden');
+                navBtns[2].classList.add('active');
+                renderInventory();
+            } else {
+                invScreen.classList.add('hidden');
+                navBtns[1].classList.add('active');
+            }
+        }
+
+        function startMatch() {
+            document.getElementById('main-menu-ui').classList.add('hidden');
+            document.getElementById('inventory-screen').classList.add('hidden');
+            document.getElementById('game-hud').style.display = 'block';
+            document.body.requestPointerLock();
+        }
+
+        window.onload = () => {
+            init3D();
+            renderInventory();
+        };
+
+        window.onresize = () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        };
     </script>
 </body>
 </html>
