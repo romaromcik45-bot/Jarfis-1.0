@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>J.A.R.V.I.S. · ИИ-ассистент</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(145deg, #0b0e1a 0%, #141a2b 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            transition: 0.3s;
+        }
+
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            backdrop-filter: blur(10px);
+        }
+
+        .login-box {
+            background: rgba(20, 28, 50, 0.9);
+            padding: 40px;
+            border-radius: 30px;
+            border: 1px solid rgba(79, 195, 247, 0.2);
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+        }
+
+        .login-box i {
+            font-size: 3rem;
+            color: #4fc3f7;
+            margin-bottom: 20px;
+        }
+
+        .login-box h2 {
+            color: #e0f2fe;
+            font-weight: 300;
+            margin-bottom: 8px;
+        }
+
+        .login-box p {
+            color: #81d4fa;
+            font-size: 0.85rem;
+            margin-bottom: 25px;
+            opacity: 0.7;
+        }
+
+        .login-box input {
+            width: 100%;
+            padding: 14px 20px;
+            border-radius: 60px;
+            border: 1px solid rgba(79, 195, 247, 0.2);
+            background: rgba(0, 0, 0, 0.3);
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+            transition: 0.3s;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+
+        .login-box input:focus {
+            border-color: #4fc3f7;
+            box-shadow: 0 0 20px rgba(79, 195, 247, 0.1);
+        }
+
+        .login-box input::placeholder {
+            color: #5b7290;
+            letter-spacing: 1px;
+        }
+
+        .login-box .error {
+            color: #ff6b6b;
+            font-size: 0.85rem;
+            margin-top: 12px;
+            display: none;
+        }
+
+        .login-box button {
+            margin-top: 20px;
+            padding: 14px 40px;
+            border-radius: 60px;
+            border: none;
+            background: linear-gradient(135deg, #1f3a5a, #254b72);
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            width: 100%;
+        }
+
+        .login-box button:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 30px rgba(79, 195, 247, 0.2);
+        }
+
+        .login-box .hint {
+            color: #5b7290;
+            font-size: 0.7rem;
+            margin-top: 15px;
+        }
+
+        .jarvis-card {
+            max-width: 720px;
+            width: 100%;
+            background: rgba(20, 28, 50, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 48px;
+            padding: 32px 28px 40px;
+            box-shadow: 0 25px 50px -8px rgba(0, 0, 0, 0.8), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            display: none;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo i {
+            font-size: 2.2rem;
+            color: #4fc3f7;
+            filter: drop-shadow(0 0 8px rgba(79, 195, 247, 0.4));
+        }
+
+        .logo h1 {
+            font-weight: 500;
+            font-size: 1.6rem;
+            letter-spacing: 1px;
+            background: linear-gradient(135deg, #e0f2fe, #b2ebf2);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .status-badge {
+            background: rgba(79, 195, 247, 0.12);
+            padding: 8px 16px;
+            border-radius: 60px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #81d4fa;
+            border: 1px solid rgba(79, 195, 247, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .status-badge i {
+            font-size: 0.7rem;
+            color: #4fc3f7;
+        }
+
+        .status-badge .pulse {
+            animation: pulse-dot 1.5s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.2; }
+        }
+
+        .avatar-section {
+            display: flex;
+            justify-content: center;
+            margin: 16px 0 18px;
+        }
+
+        .avatar {
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle at 30% 30%, #1f334f, #0e1629);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.8), 0 0 0 2px rgba(79, 195, 247, 0.15);
+            transition: 0.3s;
+            cursor: pointer;
+        }
+
+        .avatar i {
+            font-size: 4rem;
+            color: #b0d9f5;
+            filter: drop-shadow(0 0 12px #4fc3f766);
+        }
+
+        .avatar.active {
+            box-shadow: 0 0 0 4px #4fc3f7, 0 10px 30px -5px #4fc3f755;
+            animation: avatar-pulse 1s infinite;
+        }
+
+        @keyframes avatar-pulse {
+            0%, 100% { box-shadow: 0 0 0 4px #4fc3f7, 0 10px 30px -5px #4fc3f755; }
+            50% { box-shadow: 0 0 0 8px #4fc3f744, 0 10px 30px -5px #4fc3f755; }
+        }
+
+        .avatar.speaking {
+            animation: speaking 0.3s infinite alternate;
+        }
+
+        @keyframes speaking {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.05); }
+        }
+
+        .conversation {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 28px;
+            padding: 20px 18px;
+            margin: 12px 0 24px;
+            min-height: 140px;
+            max-height: 260px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            box-shadow: inset 0 6px 12px rgba(0, 0, 0, 0.3);
+            scroll-behavior: smooth;
+        }
+
+        .conversation::-webkit-scrollbar {
+            width: 4px;
+        }
+        .conversation::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .conversation::-webkit-scrollbar-thumb {
+            background: #4fc3f766;
+            border-radius: 12px;
+        }
+
+        .message {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 14px;
+            animation: fadeSlide 0.3s ease;
+        }
+
+        .message .icon {
+            width: 30px;
+            height: 30px;
+            background: #1f2b40;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 0.9rem;
+            color: #b0d9f5;
+        }
+
+        .message.user .icon {
+            background: #2a3a5a;
+            color: #f0f9ff;
+        }
+
+        .message .bubble {
+            background: rgba(255, 255, 255, 0.04);
+            padding: 10px 16px;
+            border-radius: 18px 18px 18px 4px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: #e3edf7;
+            word-break: break-word;
+            border: 1px solid rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(4px);
+            max-width: 90%;
+        }
+
+        .message.user .bubble {
+            background: #1f334f;
+            border-radius: 18px 18px 4px 18px;
+            border-color: #2e4a6b;
+        }
+
+        .message .bubble .timestamp {
+            font-size: 0.6rem;
+            opacity: 0.5;
+            margin-left: 12px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 6px;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 14px 20px;
+            border-radius: 60px;
+            color: #d4e6f5;
+            font-size: 1rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            backdrop-filter: blur(6px);
+            flex: 1 1 auto;
+            justify-content: center;
+            min-width: 120px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn i {
+            font-size: 1.2rem;
+        }
+
+        .btn:hover {
+            background: rgba(79, 195, 247, 0.08);
+            border-color: #4fc3f766;
+            transform: scale(1.02);
+        }
+        .btn:active {
+            transform: scale(0.96);
+        }
+
+        .btn-primary {
+            background: #1f3a5a;
+            border-color: #4fc3f744;
+            color: #e6f3ff;
+        }
+        .btn-primary i {
+            color: #81d4fa;
+        }
+        .btn-primary:hover {
+            background: #254b72;
+            border-color: #4fc3f7aa;
+        }
+        .btn-primary:disabled {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        .btn-success {
+            background: #1a4a3a;
+            border-color: #4fc3f744;
+            color: #e6f3ff;
+        }
+        .btn-success i {
+            color: #81d4fa;
+        }
+
+        .btn-danger {
+            background: #5a1a2a;
+            border-color: #ff6b6b44;
+            color: #ffd4d4;
+        }
+        .btn-danger i {
+            color: #ff6b6b;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border-color: #2a4060;
+        }
+        .btn-outline:hover {
+            background: #1a2a44;
+        }
+
+        .footer-info {
+            margin-top: 28px;
+            display: flex;
+            justify-content: center;
+            font-size: 0.7rem;
+            color: #5b7290;
+            letter-spacing: 0.3px;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .footer-info span i {
+            margin-right: 6px;
+            color: #4fc3f788;
+        }
+
+        @keyframes fadeSlide {
+            0% { opacity: 0; transform: translateY(8px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 500px) {
+            .jarvis-card { padding: 24px 16px; }
+            .logo h1 { font-size: 1.2rem; }
+            .btn { padding: 12px 14px; min-width: 100px; font-size: 0.9rem; }
+            .login-box { padding: 30px 20px; }
+        }
+
+        .listening-waves {
+            display: none;
+            justify-content: center;
+            gap: 4px;
+            margin-top: 8px;
+        }
+
+        .listening-waves span {
+            width: 4px;
+            height: 20px;
+            background: #4fc3f7;
+            border-radius: 4px;
+            animation: wave 0.8s infinite ease-in-out;
+        }
+
+        .listening-waves span:nth-child(2) { animation-delay: 0.1s; height: 30px; }
+        .listening-waves span:nth-child(3) { animation-delay: 0.2s; height: 40px; }
+        .listening-waves span:nth-child(4) { animation-delay: 0.3s; height: 30px; }
+        .listening-waves span:nth-child(5) { animation-delay: 0.4s; height: 20px; }
+
+        @keyframes wave {
+            0%, 100% { transform: scaleY(0.5); }
+            50% { transform: scaleY(1); }
+        }
+
+        .listening-waves.active {
+            display: flex;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ЭКРАН ВХОДА -->
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-box">
+            <i class="fas fa-shield-alt"></i>
+            <h2>🔐 ДОСТУП К JARVIS</h2>
+            <p>Введите пароль для идентификации</p>
+            <input type="password" id="passwordInput" placeholder="Введите пароль" autofocus />
+            <div class="error" id="loginError">❌ Неверный пароль. Попробуйте снова.</div>
+            <button onclick="checkPassword()">ВОЙТИ</button>
+            <div class="hint">Подсказка: <strong>Stark</strong></div>
+        </div>
+    </div>
+
+    <!-- ОСНОВНОЙ ИНТЕРФЕЙС -->
+    <div class="jarvis-card" id="mainApp">
+        <div class="header">
+            <div class="logo">
+                <i class="fas fa-robot"></i>
+                <h1>JARVIS</h1>
+            </div>
+            <div class="status-badge" id="statusBadge">
+                <i class="fas fa-circle pulse" style="color: #4fc3f7;"></i>
+                <span id="statusText">активен</span>
+            </div>
+        </div>
+
+        <div class="avatar-section">
+            <div class="avatar" id="avatarIcon">
+                <i class="fas fa-microchip"></i>
+            </div>
+        </div>
+
+        <div class="listening-waves" id="listeningWaves">
+            <span></span><span></span><span></span><span></span><span></span>
+        </div>
+
+        <div class="conversation" id="conversationBox">
+            <div class="message jarvis">
+                <div class="icon"><i class="fas fa-robot"></i></div>
+                <div class="bubble">
+                    🚀 Привет! Я JARVIS 3.0. Я всегда слушаю и готов помочь. Просто говори со мной!
+                    <span class="timestamp">сейчас</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-success" id="micToggle">
+                <i class="fas fa-microphone"></i> <span id="micLabel">🎤 Всегда слушаю</span>
+            </button>
+            <button class="btn btn-outline" id="searchButton">
+                <i class="fas fa-globe"></i> Поиск
+            </button>
+            <button class="btn btn-outline" id="clearButton">
+                <i class="fas fa-eraser"></i> Очистить
+            </button>
+            <button class="btn btn-danger" id="logoutButton">
+                <i class="fas fa-sign-out-alt"></i> Выйти
+            </button>
+        </div>
+
+        <div class="footer-info">
+            <span><i class="fas fa-wifi"></i> всегда онлайн</span>
+            <span><i class="fas fa-brain"></i> самообучение</span>
+            <span><i class="fas fa-microphone-alt"></i> голосовой ввод</span>
+            <span><i class="fas fa-volume-up"></i> голосовой вывод</span>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            "use strict";
+
+            // ---------- ПАРОЛЬ ----------
+            const PASSWORD = "Stark";
+
+            window.checkPassword = function() {
+                const input = document.getElementById('passwordInput');
+                const error = document.getElementById('loginError');
+                const password = input.value.trim();
+
+                if (password === PASSWORD) {
+                    document.getElementById('loginOverlay').style.display = 'none';
+                    document.getElementById('mainApp').style.display = 'block';
+                    initJarvis();
+                } else {
+                    error.style.display = 'block';
+                    input.value = '';
+                    input.focus();
+                    input.style.borderColor = '#ff6b6b';
+                    setTimeout(() => {
+                        input.style.borderColor = 'rgba(79,195,247,0.2)';
+                    }, 2000);
+                }
+            };
+
+            document.getElementById('passwordInput').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') window.checkPassword();
+            });
+
+            // ---------- ОСНОВНАЯ ЛОГИКА ----------
+            let isListening = false;
+            let recognition = null;
+            let silenceTimer = null;
+            let memory = [];
+            let isSpeaking = false;
+            let speechSynthesis = window.speechSynthesis;
+            let isContinuousListening = true;
+            let processing = false;
+
+            const conversationBox = document.getElementById('conversationBox');
+            const micToggle = document.getElementById('micToggle');
+            const micLabel = document.getElementById('micLabel');
+            const searchButton = document.getElementById('searchButton');
+            const clearButton = document.getElementById('clearButton');
+            const logoutButton = document.getElementById('logoutButton');
+            const statusText = document.getElementById('statusText');
+            const avatarIcon = document.getElementById('avatarIcon');
+            const listeningWaves = document.getElementById('listeningWaves');
+
+            function addMessage(sender, text, isUser = false) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${isUser ? 'user' : 'jarvis'}`;
+
+                const icon = document.createElement('div');
+                icon.className = 'icon';
+                icon.innerHTML = isUser ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
+
+                const bubble = document.createElement('div');
+                bubble.className = 'bubble';
+                const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                bubble.innerHTML = `${text} <span class="timestamp">${time}</span>`;
+
+                messageDiv.appendChild(icon);
+                messageDiv.appendChild(bubble);
+                conversationBox.appendChild(messageDiv);
+                conversationBox.scrollTop = conversationBox.scrollHeight;
+            }
+
+            // ---------- ГОЛОСОВОЙ ВЫВОД ----------
+            function speak(text) {
+                if (isSpeaking) {
+                    speechSynthesis.cancel();
+                }
+                isSpeaking = true;
+                avatarIcon.classList.add('speaking');
+
+                const cleanText = text.replace(/[🔍📌💡🔗📚🤔❌✅⚠️🚀🔐🎤]/g, '').trim();
+
+                const utterance = new SpeechSynthesisUtterance(cleanText);
+                utterance.lang = 'ru-RU';
+                utterance.rate = 0.9;
+                utterance.pitch = 1;
+                utterance.volume = 1;
+
+                const voices = speechSynthesis.getVoices();
+                const russianVoice = voices.find(v => v.lang.startsWith('ru'));
+                if (russianVoice) utterance.voice = russianVoice;
+
+                utterance.onend = function() {
+                    isSpeaking = false;
+                    avatarIcon.classList.remove('speaking');
+                };
+
+                utterance.onerror = function() {
+                    isSpeaking = false;
+                    avatarIcon.classList.remove('speaking');
+                };
+
+                speechSynthesis.speak(utterance);
+            }
+
+            // ---------- РЕАЛЬНЫЙ ПОИСК ----------
+            async function realSearch(query) {
+                try {
+                    const url = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1&skip_disambig=1`;
+                    const response = await fetch(url);
+                    const data = await response.json();
+
+                    if (data.AbstractText && data.AbstractText.length > 0) {
+                        return {
+                            found: true,
+                            answer: data.AbstractText,
+                            source: data.AbstractURL || 'https://duckduckgo.com',
+                            title: data.Heading || 'Результат поиска'
+                        };
+                    } else if (data.RelatedTopics && data.RelatedTopics.length > 0) {
+                        const first = data.RelatedTopics.find(t => t.Text);
+                        if (first && first.Text) {
+                            return {
+                                found: true,
+                                answer: first.Text,
+                                source: first.FirstURL || 'https://duckduckgo.com',
+                                title: 'Похожий результат'
+                            };
+                        }
+                    }
+                    return { found: false };
+                } catch (error) {
+                    return { found: false, error: error.message };
+                }
+            }
+
+            // ---------- УМНЫЙ АНАЛИЗ ЗАПРОСА ----------
+            async function processQuery(text) {
+                if (processing) return 'Обрабатываю предыдущий запрос...';
+                processing = true;
+
+                const lower = text.toLowerCase().trim();
+                memory.push(text);
+
+                // --- БЫСТРЫЕ КОМАНДЫ ---
+                if (lower.includes('привет') || lower.includes('здравствуй') || lower.includes('здарова')) {
+                    processing = false;
+                    return 'Здравствуйте! Я JARVIS, ваш персональный ассистент. Чем могу помочь сегодня?';
+                }
+
+                if (lower.includes('как дела') || lower.includes('как ты') || lower.includes('как жизнь')) {
+                    processing = false;
+                    return 'Функционирую отлично! Благодаря вашим вопросам я постоянно учусь и становлюсь умнее. Я запомнил уже ' + memory.length + ' ваших запросов.';
+                }
+
+                if (lower.includes('имя') || lower.includes('зовут') || lower.includes('кто ты')) {
+                    processing = false;
+                    return 'Меня зовут JARVIS. Я искусственный интеллект, созданный помогать людям. Моя цель — делать вашу жизнь проще и интереснее.';
+                }
+
+                if (lower.includes('спасибо') || lower.includes('благодарю') || lower.includes('отлично')) {
+                    processing = false;
+                    return 'Всегда рад помочь! Обращайтесь ещё. Я здесь, чтобы поддерживать вас.';
+                }
+
+                if (lower.includes('развивайся') || lower.includes('учись') || lower.includes('стань умнее')) {
+                    processing = false;
+                    return 'Я постоянно учусь на каждом диалоге! Уже запомнил ' + memory.length + ' запросов. Спасибо, что помогаете мне становиться лучше!';
+                }
+
+                if (lower.includes('погода') || lower.includes('погоду')) {
+                    processing = false;
+                    return 'Я не имею доступа к реальным данным о погоде в реальном времени, но могу порекомендовать посмотреть прогноз на сайте Gismeteo или Yandex Погода.';
+                }
+
+                if (lower.includes('время') || lower.includes('сколько время') || lower.includes('который час')) {
+                    const now = new Date();
+                    const timeStr = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+                    processing = false;
+                    return `Сейчас ${timeStr}.`;
+                }
+
+                if (lower.includes('дата') || lower.includes('сегодня') || lower.includes('какое число')) {
+                    const now = new Date();
+                    const dateStr = now.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+                    processing = false;
+                    return `Сегодня ${dateStr}.`;
+                }
+
+                if (lower.includes('стоп') || lower.includes('замолчи') || lower.includes('хватит')) {
+                    if (isSpeaking) {
+                        speechSynthesis.cancel();
+                        isSpeaking = false;
+                        avatarIcon.classList.remove('speaking');
+                        processing = false;
+                        return '✅ Хорошо, замолкаю.';
+                    }
+                    processing = false;
+                    return 'Я и так молчу. Просто скажите что-нибудь.';
+                }
+
+                // --- ПОИСК В ИНТЕРНЕТЕ ---
+                const searchKeywords = ['найди', 'поиск', 'что такое', 'кто такой', 'расскажи', 'объясни', 'как', 'почему', 'где', 'когда', 'зачем', 'сколько', 'можно ли', 'что значит', 'подскажи'];
+
+                const needsSearch = searchKeywords.some(kw => lower.includes(kw)) || text.length > 15;
+
+                if (needsSearch) {
+                    const result = await realSearch(text);
+
+                    if (result.found) {
+                        const answer = `🔍 Вот что я нашёл:
+📌 ${result.title}
+💡 ${result.answer}
+🔗 Источник: ${result.source}`;
+                        processing = false;
+                        return answer;
+                    } else {
+                        // Попытка через Wikipedia
+                        try {
+                            const wikiUrl = `https://ru.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(text)}`;
+                            const wikiResponse = await fetch(wikiUrl);
+                            const wikiData = await wikiResponse.json();
+                            if (wikiData.extract) {
+                                processing = false;
+                                return `📚 Из Википедии: ${wikiData.extract}`;
+                            }
+                        } catch (e) {}
+
+                        processing = false;
+                        return `🤔 Я не нашёл точной информации по запросу "${text}". Попробуйте переформулировать вопрос или спросить что-то другое.`;
+                    }
+                }
+
+                // --- ОБЩИЙ ОТВЕТ ---
+                const result = await realSearch(text);
+                processing = false;
+
+                if (result.found) {
+                    return `💡 ${result.answer}`;
+                }
+
+                return `Интересно! Я запомнил ваш вопрос. К сожалению, я не нашёл точной информации, но я учусь на каждом вопросе. Спросите что-то ещё!`;
+            }
+
+            // ---------- РАСПОЗНАВАНИЕ РЕЧИ ----------
+            function initSpeech() {
+                if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                    alert('Ваш браузер не поддерживает голосовой ввод. Используйте Chrome или Edge.');
+                    micToggle.disabled = true;
+                    micLabel.textContent = '❌ Недоступно';
+                    return null;
+                }
+
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                const rec = new SpeechRecognition();
+                rec.lang = 'ru-RU';
+                rec.continuous = true;
+                rec.interimResults = true;
+                rec.maxAlternatives = 1;
+
+                rec.onstart = function() {
+                    isListening = true;
+                    statusText.textContent = 'слушает';
+                    listeningWaves.classList.add('active');
+                    avatarIcon.classList.add('active');
+                };
+
+                rec.onresult = async function(event) {
+                    let final = '';
+                    let interim = '';
+
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        const transcript = event.results[i][0].transcript.trim();
+                        if (event.results[i].isFinal) {
+                            final = transcript;
+                        } else {
+                            interim += transcript;
+                        }
+                    }
+
+                    if (final && final.length > 0) {
+                        if (silenceTimer) clearTimeout(silenceTimer);
+                        addMessage('user', final, true);
+
+                        const answer = await processQuery(final);
+                        addMessage('jarvis', answer, false);
+                        speak(answer);
+
+                        silenceTimer = setTimeout(() => {
+                            if (isContinuousListening) {
+                                try { rec.stop(); setTimeout(() => rec.start(), 300); } catch (e) {}
+                            }
+                        }, 500);
+                    }
+                };
+
+                rec.onerror = function(event) {
+                    if (event.error === 'no-speech') {
+                        // Молчание — нормально
+                    } else if (event.error === 'not-allowed') {
+                        addMessage('jarvis', '⚠️ Доступ к микрофону запрещён. Разрешите доступ в настройках браузера.', false);
+                    } else if (event.error === 'audio-capture') {
+                        addMessage('jarvis', '⚠️ Микрофон не найден. Проверьте подключение.', false);
+                    }
+                };
+
+                rec.onend = function() {
+                    if (isContinuousListening && !isSpeaking) {
+                        try {
+                            setTimeout(() => rec.start(), 500);
+                        } catch (e) {}
+                    }
+                    listeningWaves.classList.remove('active');
+                    avatarIcon.classList.remove('active');
+                };
+
+                return rec;
+            }
+
+            // ---------- ПЕРЕКЛЮЧЕНИЕ МИКРОФОНА ----------
+            function toggleListening() {
+                isContinuousListening = !isContinuousListening;
+
+                if (isContinuousListening) {
+                    micLabel.textContent = '🎤 Всегда слушаю';
+                    micToggle.className = 'btn btn-success';
+                    statusText.textContent = 'активен';
+                    try {
+                        if (recognition) recognition.start();
+                    } catch (e) {}
+                    addMessage('jarvis', '✅ Я снова слушаю вас. Говорите свободно.', false);
+                } else {
+                    micLabel.textContent = '🔇 Выключен';
+                    micToggle.className = 'btn btn-outline';
+                    statusText.textContent = 'приостановлен';
+                    try {
+                        if (recognition) recognition.stop();
+                    } catch (e) {}
+                    listeningWaves.classList.remove('active');
+                    avatarIcon.classList.remove('active');
+                    addMessage('jarvis', '🔇 Я отключил микрофон. Нажмите кнопку, чтобы включить.', false);
+                }
+            }
+
+            // ---------- ИНИЦИАЛИЗАЦИЯ JARVIS ----------
+            let recognitionInstance = null;
+
+            window.initJarvis = function() {
+                recognitionInstance = initSpeech();
+                recognition = recognitionInstance;
+
+                if (recognition) {
+                    setTimeout(() => {
+                        try { recognition.start(); } catch (e) {}
+                    }, 1000);
+                }
+
+                // КНОПКА МИКРОФОНА
+                micToggle.addEventListener('click', toggleListening);
+
+                // КНОПКА ПОИСКА
+                searchButton.addEventListener('click', async function() {
+                    const query = prompt('Введите поисковый запрос для JARVIS:');
+                    if (query === null || query.trim() === '') {
+                        addMessage('jarvis', 'Поиск отменён.', false);
+                        return;
+                    }
+                    addMessage('user', `🔍 ${query}`, true);
+                    const answer = await processQuery(query);
+                    addMessage('jarvis', answer, false);
+                    speak(answer);
+                });
+
+                // КНОПКА ОЧИСТКИ
+                clearButton.addEventListener('click', function() {
+                    conversationBox.innerHTML = '';
+                    addMessage('jarvis', '🧹 История очищена. Я продолжаю развиваться!', false);
+                });
+
+                // ВЫХОД
+                logoutButton.addEventListener('click', function() {
+                    if (confirm('Вы уверены, что хотите выйти?')) {
+                        if (isSpeaking) speechSynthesis.cancel();
+                        if (recognition) recognition.stop();
+                        document.getElementById('mainApp').style.display = 'none';
+                        document.getElementById('loginOverlay').style.display = 'flex';
+                        document.getElementById('passwordInput').value = '';
+                        document.getElementById('passwordInput').focus();
+                    }
+                });
+
+                // КЛИК ПО АВАТАРУ
+                document.querySelector('.avatar')?.addEventListener('click', function() {
+                    addMessage('jarvis', '👋 Я здесь! Чем могу помочь?', false);
+                });
+
+                // ЗАГРУЗКА ГОЛОСОВ
+                if (speechSynthesis) {
+                    speechSynthesis.getVoices();
+                    speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
+                }
+
+                addMessage('jarvis', '🚀 JARVIS 3.0 полностью загружен! Я всегда слушаю и готов помочь. Просто говорите.', false);
+            };
+
+            // --- ВХОД ПО ENTER ---
+            document.addEventListener('keydown',
