@@ -223,9 +223,8 @@
         let targets = [], obstacles = [], score = 0;
         let isGameActive = false, isMobileMode = false;
 
-        // Физика и Движение
+        // Движение
         const moveState = { forward: 0, right: 0 };
-        const velocity = new THREE.Vector3();
         const speed = 12.0;
         let pitch = 0, yaw = 0;
 
@@ -304,7 +303,6 @@
             touchControls.style.display = 'none';
         }
 
-        // --- Карта ---
         function createMap() {
             obstacles = [];
 
@@ -417,7 +415,7 @@
             camera.rotation.x = pitch;
         }
 
-        // --- Сенсорный джойстик (Точное направление) ---
+        // --- Сенсорное управление ---
         function setupTouchControls() {
             const joystickZone = document.getElementById('joystick-zone');
             const stick = document.getElementById('joystick-stick');
@@ -480,7 +478,8 @@
                 stick.style.left = `${40 + stickX}px`;
                 stick.style.top = `${40 + stickY}px`;
 
-                // Вверх: forward > 0, Вправо: right > 0, Влево: right < 0
+                // Нормализация от -1 до 1
+                // Вверх: dy < 0 (forward = 1), Вправо: dx > 0 (right = 1), Влево: dx < 0 (right = -1)
                 moveState.forward = -stickY / 45;
                 moveState.right = stickX / 45;
             }
@@ -520,7 +519,7 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         }
 
-        // --- Игровой цикл ---
+        // --- Главный цикл (Точный расчет углов) ---
         let prevTime = performance.now();
         function animate(time) {
             requestAnimationFrame(animate);
@@ -531,27 +530,24 @@
                 gunGroup.position.z += (-0.5 - gunGroup.position.z) * 0.1;
 
                 const moveVector = new THREE.Vector3();
-                
+
+                // Прямой расчёт векторов относительно угла взгляда (yaw)
+                const sinYaw = Math.sin(yaw);
+                const cosYaw = Math.cos(yaw);
+
                 // Вперед / Назад
                 if (Math.abs(moveState.forward) > 0.05) {
-                    const dir = new THREE.Vector3();
-                    camera.getWorldDirection(dir);
-                    dir.y = 0;
-                    dir.normalize();
-                    moveVector.addScaledVector(dir, moveState.forward * speed * delta);
-                }
-                
-                // Вправо / Влево (исправлен вектор направления)
-                if (Math.abs(moveState.right) > 0.05) {
-                    const dir = new THREE.Vector3();
-                    camera.getWorldDirection(dir);
-                    dir.y = 0;
-                    dir.normalize();
-                    dir.cross(new THREE.Vector3(0, 1, 0)); // Получаем право
-                    moveVector.addScaledVector(dir, -moveState.right * speed * delta);
+                    moveVector.x -= sinYaw * moveState.forward * speed * delta;
+                    moveVector.z -= cosYaw * moveState.forward * speed * delta;
                 }
 
-                // Движение с учетом стен
+                // Вправо / Влево (Джойстик вправо: right > 0 -> вектор стремится вправо относительно обзора)
+                if (Math.abs(moveState.right) > 0.05) {
+                    moveVector.x += cosYaw * moveState.right * speed * delta;
+                    moveVector.z -= sinYaw * moveState.right * speed * delta;
+                }
+
+                // Движение с обработкой столкновений по осям
                 const nextPositionX = camera.position.clone().add(new THREE.Vector3(moveVector.x, 0, 0));
                 if (!checkCollision(nextPositionX)) {
                     camera.position.x = nextPositionX.x;
